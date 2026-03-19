@@ -169,21 +169,21 @@ export default function Admin() {
     reader.readAsText(file)
   }
 
-  // Recherche playlist IA
+  // Recherche playlist IA — via Vercel
   async function handleSearchPlaylist() {
     if (!searchTheme.trim() || searchLoading) return
     setSearchLoading(true)
     setSearchResults([])
     setSelectedSongs({})
     try {
-      const res = await fetch('/api/playlist-search', {
+      const response = await fetch('https://blindtest-live.vercel.app/api/playlist-search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ theme: searchTheme.trim() })
       })
-      const data = await res.json()
+      const data = await response.json()
       setSearchResults(data.songs || [])
-    } catch { alert('Erreur lors de la recherche') }
+    } catch (e) { console.error(e); alert('Erreur lors de la recherche') }
     setSearchLoading(false)
   }
 
