@@ -19,11 +19,7 @@ export default function Admin() {
   const [tab,       setTab]           = useState('control')
   const [loading,   setLoading]       = useState(false)
   const [showPodium, setShowPodium]   = useState(false)
-  // Playlist search
-  const [searchTheme,    setSearchTheme]    = useState('')
-  const [searchResults,  setSearchResults]  = useState([])
-  const [searchLoading,  setSearchLoading]  = useState(false)
-  const [selectedSongs,  setSelectedSongs]  = useState({})
+
   const timerRef = useRef(null)
 
   useEffect(() => {
@@ -169,34 +165,7 @@ export default function Admin() {
     reader.readAsText(file)
   }
 
-  // Recherche playlist IA — via Vercel
-  async function handleSearchPlaylist() {
-    if (!searchTheme.trim() || searchLoading) return
-    setSearchLoading(true)
-    setSearchResults([])
-    setSelectedSongs({})
-    try {
-      const response = await fetch('https://blindtest-live.vercel.app/api/playlist-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ theme: searchTheme.trim() })
-      })
-      const data = await response.json()
-      setSearchResults(data.songs || [])
-    } catch (e) { console.error(e); alert('Erreur lors de la recherche') }
-    setSearchLoading(false)
-  }
 
-  async function handleAddSearchResults() {
-    const toAdd = searchResults.filter((_, i) => selectedSongs[i])
-    if (toAdd.length === 0) return
-    await supabase.from('playlist').insert(toAdd.map((s, i) => ({
-      session_id: SESSION_ID, title: s.title, artist: s.artist, position: playlist.length + i
-    })))
-    loadPlaylist()
-    setSearchResults([]); setSelectedSongs({}); setSearchTheme('')
-    setTab('playlist')
-  }
 
   // Podium final
   async function handleEndSession() {
@@ -250,9 +219,7 @@ export default function Admin() {
         .timer-btn { background:transparent; border:1px solid rgba(255,255,255,.15); color:rgba(255,255,255,.5); padding:7px 14px; border-radius:7px; font-family:'Share Tech Mono',monospace; font-size:12px; cursor:pointer; transition:all .15s; }
         .timer-btn.active { border-color:#00f5ff; color:#00f5ff; background:rgba(0,245,255,.07); }
         .timer-btn:hover { border-color:rgba(255,255,255,.4); color:#fff; }
-        .search-row { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.025); margin-bottom:7px; cursor:pointer; transition:all .15s; }
-        .search-row:hover { border-color:rgba(255,45,120,.3); }
-        .search-row.selected { border-color:rgba(255,45,120,.6); background:rgba(255,45,120,.07); }
+
       `}</style>
 
       {/* Header */}
@@ -277,7 +244,7 @@ export default function Admin() {
 
       {/* Tabs */}
       <div style={{ borderBottom: '1px solid rgba(255,255,255,.07)', padding: '0 20px', display: 'flex', overflowX: 'auto' }}>
-        {[['control','🎮 Contrôle'],['playlist','🎵 Playlist'],['search','🔍 Recherche'],['scores','🏆 Classement']].map(([id, label]) => (
+        {[['control','🎮 Contrôle'],['playlist','🎵 Playlist'],['scores','🏆 Classement']].map(([id, label]) => (
           <button key={id} className={`tab-btn ${tab === id ? 'active' : ''}`} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
@@ -421,66 +388,6 @@ export default function Admin() {
           </div>
         )}
 
-        {/* ═══ RECHERCHE PLAYLIST IA ═══ */}
-        {tab === 'search' && (
-          <div style={{ maxWidth: 680 }}>
-            <div className="card">
-              <span className="label">🤖 générer une playlist avec l'IA</span>
-              <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
-                <input className="inp" placeholder="Ex: années 80, rap français, hits TikTok 2024, Disney, Noël..."
-                  value={searchTheme} onChange={e => setSearchTheme(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearchPlaylist()} />
-                <button className="btn-red" onClick={handleSearchPlaylist} disabled={searchLoading} style={{ width: 'auto', padding: '11px 20px', whiteSpace: 'nowrap' }}>
-                  {searchLoading ? '...' : '🔍 GÉNÉRER'}
-                </button>
-              </div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>
-                Décris un thème, une époque, un genre, un artiste... Claude génère 10-15 chansons adaptées au blind test.
-              </div>
-            </div>
-
-            {searchLoading && (
-              <div style={{ textAlign: 'center', padding: '40px', fontFamily: 'Share Tech Mono', fontSize: 13, color: 'rgba(255,255,255,.3)' }}>
-                ⏳ Génération en cours...
-              </div>
-            )}
-
-            {searchResults.length > 0 && (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                  <span className="label" style={{ marginBottom: 0 }}>
-                    {searchResults.length} chansons générées —
-                    <span style={{ color: '#ff2d78', cursor: 'pointer', marginLeft: 8 }}
-                      onClick={() => setSelectedSongs(Object.fromEntries(searchResults.map((_, i) => [i, true])))}>
-                      Tout sélectionner
-                    </span>
-                    <span style={{ color: 'rgba(255,255,255,.3)', cursor: 'pointer', marginLeft: 8 }}
-                      onClick={() => setSelectedSongs({})}>
-                      Tout désélectionner
-                    </span>
-                  </span>
-                  <button className="btn-red" style={{ width: 'auto', padding: '9px 18px' }}
-                    onClick={handleAddSearchResults} disabled={Object.values(selectedSongs).filter(Boolean).length === 0}>
-                    + AJOUTER ({Object.values(selectedSongs).filter(Boolean).length})
-                  </button>
-                </div>
-
-                {searchResults.map((song, i) => (
-                  <div key={i} className={`search-row ${selectedSongs[i] ? 'selected' : ''}`}
-                    onClick={() => setSelectedSongs(prev => ({ ...prev, [i]: !prev[i] }))}>
-                    <div style={{ width: 20, height: 20, borderRadius: 4, border: `1.5px solid ${selectedSongs[i] ? '#ff2d78' : 'rgba(255,255,255,.2)'}`, background: selectedSongs[i] ? '#ff2d78' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11 }}>
-                      {selectedSongs[i] ? '✓' : ''}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{song.title}</div>
-                      <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 12, fontFamily: 'Share Tech Mono', marginTop: 2 }}>{song.artist}</div>
-                    </div>
-                  </div>
-                ))}
-              </>
-            )}
-          </div>
-        )}
 
         {/* ═══ SCORES ═══ */}
         {tab === 'scores' && (
