@@ -15,31 +15,23 @@ export default function Admin() {
   const [loading,   setLoading]     = useState(false)
   const timerRef = useRef(null)
 
-  // ── Chargement initial ──────────────────────────────────
   useEffect(() => {
     loadAll()
-
-    // Realtime : game_state
     const gsChannel = supabase
       .channel('game_state_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state', filter: `session_id=eq.${SESSION_ID}` },
         payload => setGameState(payload.new))
       .subscribe()
-
-    // Realtime : scores
     const scChannel = supabase
       .channel('scores_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'scores', filter: `session_id=eq.${SESSION_ID}` },
         () => loadScores())
       .subscribe()
-
-    // Realtime : comments
     const cmChannel = supabase
       .channel('comments_changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'comments', filter: `session_id=eq.${SESSION_ID}` },
         payload => setComments(prev => [payload.new, ...prev].slice(0, 40)))
       .subscribe()
-
     return () => {
       supabase.removeChannel(gsChannel)
       supabase.removeChannel(scChannel)
@@ -47,7 +39,6 @@ export default function Admin() {
     }
   }, [])
 
-  // ── Timer local (cosmétique uniquement) ────────────────
   useEffect(() => {
     clearInterval(timerRef.current)
     if (gameState.status === 'playing' && gameState.timer_end) {
@@ -56,7 +47,6 @@ export default function Admin() {
         setTimer(remaining)
         if (remaining <= 0) {
           clearInterval(timerRef.current)
-          // Auto-révélation si personne n'a trouvé
           handleReveal()
         }
       }, 500)
@@ -90,7 +80,6 @@ export default function Admin() {
     setComments(data || [])
   }
 
-  // ── Actions ─────────────────────────────────────────────
   const nextUnplayed = playlist.find(s => !s.played)
 
   async function handleStart() {
@@ -146,12 +135,18 @@ export default function Admin() {
   }
 
   async function handleResetScores() {
-    if (!confirm('Réinitialiser tout le classement ?')) return
-    await supabase.from('scores').delete().eq('session_id', SESSION_ID)
+    if (!confirm('Réinitialiser tout le classement et les commentaires ?')) return
+    await fetch('/api/reset', { method: 'POST' })
     setScores([])
+    setComments([])
   }
 
-  // ── Styles ───────────────────────────────────────────────
+  async function handleResetPlaylist() {
+    if (!confirm('Remettre toutes les chansons en non-jouées ?')) return
+    await supabase.from('playlist').update({ played: false }).eq('session_id', SESSION_ID)
+    loadPlaylist()
+  }
+
   const timerPct = (timer / TIMER_DURATION) * 100
   const timerColor = timer > 15 ? '#00f5ff' : timer > 7 ? '#ffd700' : '#ff3860'
   const R = 42; const circ = 2 * Math.PI * R
@@ -220,7 +215,6 @@ export default function Admin() {
         {tab === 'control' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 16 }}>
             <div>
-              {/* Chanson actuelle */}
               <div className="card-pink">
                 <span className="label">▶ chanson actuelle</span>
                 {gameState.song_title ? (
@@ -235,7 +229,6 @@ export default function Admin() {
                 )}
               </div>
 
-              {/* Timer */}
               <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
                 <div style={{ position: 'relative', width: 96, height: 96, flexShrink: 0 }}>
                   <svg width="96" height="96" style={{ transform: 'rotate(-90deg)' }}>
@@ -253,7 +246,6 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Boutons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                 <button className="btn-red" disabled={!nextUnplayed || gameState.status !== 'idle' || loading} onClick={handleStart}>
                   ▶ DÉMARRER
@@ -266,7 +258,6 @@ export default function Admin() {
                 ⏭ CHANSON SUIVANTE
               </button>
 
-              {/* Winner */}
               {gameState.status === 'revealed' && gameState.winner_name && (
                 <div style={{ marginTop: 14, background: 'rgba(255,215,0,.07)', border: '1px solid rgba(255,215,0,.4)', borderRadius: 10, padding: 16, textAlign: 'center', animation: 'winnerPop .5s ease' }}>
                   <div style={{ fontSize: 24, marginBottom: 4 }}>🏆</div>
@@ -281,7 +272,6 @@ export default function Admin() {
               )}
             </div>
 
-            {/* Comments */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span className="label" style={{ marginBottom: 0 }}>💬 commentaires tiktok live</span>
@@ -313,7 +303,10 @@ export default function Admin() {
                 <input className="inp" placeholder="Titre" value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddSong()} />
                 <input className="inp" placeholder="Artiste" value={newArtist} onChange={e => setNewArtist(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddSong()} />
               </div>
-              <button className="btn-red" onClick={handleAddSong} style={{ maxWidth: 200 }}>+ AJOUTER</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button className="btn-red" onClick={handleAddSong} style={{ padding: '11px' }}>+ AJOUTER</button>
+                <button className="btn-ghost" onClick={handleResetPlaylist}>🔄 Tout remettre à zéro</button>
+              </div>
             </div>
 
             <span className="label">{playlist.filter(s => !s.played).length} chanson(s) restante(s) sur {playlist.length}</span>
@@ -343,7 +336,7 @@ export default function Admin() {
           <div style={{ maxWidth: 500 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <span className="label" style={{ marginBottom: 0 }}>🏆 classement en direct</span>
-              <button className="btn-ghost" style={{ width: 'auto', padding: '7px 14px' }} onClick={handleResetScores}>🔄 Reset</button>
+              <button className="btn-ghost" style={{ width: 'auto', padding: '7px 14px' }} onClick={handleResetScores}>🔄 Reset classement</button>
             </div>
             {scores.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 12, lineHeight: 2.2 }}>
