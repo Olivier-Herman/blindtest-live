@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase, SESSION_ID } from '../lib/supabase'
 
 export default function Overlay() {
-  const [gameState, setGameState] = useState({ status: 'idle', song_title: '', song_artist: '', winner_name: '' })
+  const [gameState, setGameState] = useState({ status: 'idle', song_title: '', song_artist: '', winner_name: '', songs_remaining: 0, timer_duration: 30 })
   const [scores,    setScores]    = useState([])
   const [timer,     setTimer]     = useState(30)
 
@@ -37,7 +37,7 @@ export default function Overlay() {
         setTimer(remaining)
       }, 500)
     }
-    if (gameState.status === 'idle') setTimer(30)
+    if (gameState.status === 'idle') setTimer(gameState.timer_duration || 30)
     return () => clearInterval(interval)
   }, [gameState.status, gameState.timer_end])
 
@@ -52,7 +52,13 @@ export default function Overlay() {
     setScores(data || [])
   }
 
-  const timerColor = timer > 15 ? '#7ecfff' : timer > 7 ? '#e8c96d' : '#e05555'
+  const timerDuration  = gameState.timer_duration || 30
+  const timerPct       = (timer / timerDuration) * 100
+  const timerColor     = timer > timerDuration * 0.5 ? '#7ecfff' : timer > timerDuration * 0.25 ? '#e8c96d' : '#e05555'
+
+  // Points disponibles dégressifs (miroir du webhook)
+  const ratio = timer / timerDuration
+  const availablePoints = ratio > 0.66 ? 10 : ratio > 0.40 ? 7 : ratio > 0.15 ? 5 : 3
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000', overflow: 'hidden', position: 'relative', fontFamily: "'Orbitron', monospace" }}>
@@ -66,28 +72,57 @@ export default function Overlay() {
         @keyframes winnerIn   { 0%{transform:scale(0) rotate(-6deg);opacity:0} 65%{transform:scale(1.07) rotate(.5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
         @keyframes fadeSlide  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes timerPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+        @keyframes barShrink  { from{width:100%} }
         .wbar { display:inline-block; border-radius:2px 2px 0 0; transform-origin:bottom; }
       `}</style>
 
-      {/* Fond noir avec légère grille discrète */}
+      {/* Fond grille discrète */}
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-
-      {/* Vignette douce */}
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 85% 85% at 50% 50%, transparent 45%, rgba(0,0,0,.6) 100%)', pointerEvents: 'none' }} />
 
-      {/* Top title — blanc cassé, sobre */}
+      {/* Top title */}
       <div style={{ position: 'absolute', top: '4vh', left: 0, right: 0, textAlign: 'center', zIndex: 20 }}>
         <div style={{ fontWeight: 900, fontSize: '4vw', letterSpacing: '0.45em', color: '#e8e8e8', textShadow: '0 0 30px rgba(255,255,255,.15)' }}>
           ♪ BLIND TEST ♪
         </div>
       </div>
 
+      {/* Morceaux restants (top left) */}
+      {gameState.songs_remaining > 0 && (
+        <div style={{ position: 'absolute', top: '4vh', left: '3vw', zIndex: 20, fontFamily: 'Share Tech Mono', fontSize: '1.1vw', color: 'rgba(255,255,255,.25)', letterSpacing: '0.2em' }}>
+          {gameState.songs_remaining} morceau{gameState.songs_remaining > 1 ? 'x' : ''} restant{gameState.songs_remaining > 1 ? 's' : ''}
+        </div>
+      )}
+
+      {/* Round counter (top right) */}
+      {gameState.round_number > 0 && (
+        <div style={{ position: 'absolute', top: '4vh', right: '3vw', fontSize: '1.2vw', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', zIndex: 20 }}>
+          ROUND {gameState.round_number}
+        </div>
+      )}
+
+      {/* Barre de progression (en haut, sous le titre) */}
+      {gameState.status === 'playing' && (
+        <div style={{ position: 'absolute', top: '13vh', left: '5vw', right: '5vw', zIndex: 20 }}>
+          <div style={{ height: '0.4vw', background: 'rgba(255,255,255,.08)', borderRadius: '1vw', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%',
+              width: `${timerPct}%`,
+              background: `linear-gradient(90deg, ${timerColor}, ${timerColor}99)`,
+              borderRadius: '1vw',
+              transition: 'width 0.9s linear, background 0.5s',
+              boxShadow: `0 0 8px ${timerColor}60`
+            }} />
+          </div>
+        </div>
+      )}
+
       {/* Center */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20 }}>
         {gameState.status !== 'revealed' ? (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '15vw', fontWeight: 900, color: '#c8a96e', animation: 'qPulse 2.5s ease-in-out infinite', lineHeight: 1 }}>?</div>
-            <div style={{ fontSize: '2vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '0.5em', marginTop: '1.5vw', animation: 'fadeSlide .8s ease' }}>
+            <div style={{ fontSize: '2vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '0.5em', marginTop: '1.5vw' }}>
               QUELLE EST CETTE CHANSON ?
             </div>
             {gameState.status === 'playing' && (
@@ -125,7 +160,7 @@ export default function Overlay() {
         )}
       </div>
 
-      {/* Timer — sobre, lisible */}
+      {/* Timer + Points disponibles (bottom left) */}
       {gameState.status === 'playing' && (
         <div style={{
           position: 'absolute', bottom: '5vh', left: '3vw', zIndex: 30,
@@ -133,17 +168,22 @@ export default function Overlay() {
           border: `1px solid ${timerColor}60`,
           borderRadius: '1.5vw',
           padding: '1vw 2.5vw',
-          animation: timer <= 7 ? 'timerPulse .6s ease-in-out infinite' : 'fadeSlide .4s ease',
-          minWidth: '13vw',
+          animation: timer <= Math.round(timerDuration * 0.15) ? 'timerPulse .6s ease-in-out infinite' : 'fadeSlide .4s ease',
           textAlign: 'center'
         }}>
-          <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '0.4em', marginBottom: '0.3vw' }}>TEMPS</div>
-          <div style={{ fontSize: '7vw', fontWeight: 900, color: timerColor, lineHeight: 1 }}>{timer}</div>
-          <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', marginTop: '0.2vw' }}>sec</div>
+          {/* Points disponibles — grand */}
+          <div style={{ fontSize: '5vw', fontWeight: 900, color: timerColor, lineHeight: 1 }}>
+            {availablePoints}
+            <span style={{ fontSize: '1.5vw', color: 'rgba(255,255,255,.3)', marginLeft: '0.3vw', fontFamily: 'Share Tech Mono' }}>pts</span>
+          </div>
+          {/* Timer secondes — petit en dessous */}
+          <div style={{ fontSize: '1.1vw', color: 'rgba(255,255,255,.25)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', marginTop: '0.2vw' }}>
+            {timer}s
+          </div>
         </div>
       )}
 
-      {/* Scoreboard */}
+      {/* Scoreboard (bottom right) */}
       {scores.length > 0 && (
         <div style={{
           position: 'absolute', bottom: '5vh', right: '3vw', zIndex: 30,
@@ -159,17 +199,13 @@ export default function Overlay() {
           </div>
           {scores.slice(0, 5).map((p, i) => (
             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '2vw', fontSize: '1.7vw', fontFamily: 'Share Tech Mono', marginBottom: '0.5vw', color: i === 0 ? '#c8a96e' : i === 1 ? '#aaaaaa' : i === 2 ? '#9a7a5a' : 'rgba(255,255,255,.4)' }}>
-              <span>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`} {p.username}</span>
+              <span>
+                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`} {p.username}
+                {p.streak >= 2 && <span style={{ fontSize: '1.1vw', color: '#e8c96d', marginLeft: '0.5vw' }}>🔥×{p.streak}</span>}
+              </span>
               <span style={{ color: 'rgba(255,255,255,.35)' }}>{p.score}pt</span>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Round counter */}
-      {gameState.round_number > 0 && (
-        <div style={{ position: 'absolute', top: '4vh', right: '3vw', fontSize: '1.2vw', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', zIndex: 20 }}>
-          ROUND {gameState.round_number}
         </div>
       )}
     </div>

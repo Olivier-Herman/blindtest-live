@@ -23,6 +23,15 @@ function containsAnswer(message, value) {
   return normMsg === normVal || normMsg.includes(normVal)
 }
 
+function calcPoints(timerEnd, timerDuration = 30) {
+  const remaining = Math.max(0, (new Date(timerEnd) - Date.now()) / 1000)
+  const ratio = remaining / timerDuration
+  if (ratio > 0.66) return 10
+  if (ratio > 0.40) return 7
+  if (ratio > 0.15) return 5
+  return 3
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
@@ -51,39 +60,49 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, ignored: true })
   }
 
-  // ✅ Bonne réponse = titre OU artiste
   const isCorrect =
     containsAnswer(message, state.song_title) ||
     containsAnswer(message, state.song_artist)
 
   await supabase.from('comments').insert({
-    session_id: SESSION_ID,
-    username,
-    message,
-    is_correct: isCorrect
+    session_id: SESSION_ID, username, message, is_correct: isCorrect
   })
 
   if (isCorrect) {
-    await supabase.from('game_state').update({
-      status: 'revealed',
-      winner_name: username,
-      updated_at: new Date().toISOString()
-    }).eq('session_id', SESSION_ID)
+    const points = calcPoints(state.timer_end, state.timer_duration || 30)
 
     const { data: existing } = await supabase.from('scores')
-      .select('score, answers')
+      .select('score, answers, last_round_won, streak')
       .eq('session_id', SESSION_ID)
       .eq('username', username).single()
 
+    const lastWon     = existing?.last_round_won || 0
+    const prevStreak  = existing?.streak || 0
+    const isStreak    = lastWon === (state.round_number - 1)
+    const streakBonus = isStreak ? 3 : 0
+    const newStreak   = isStreak ? prevStreak + 1 : 1
+    const totalPoints = points + streakBonus
+
     await supabase.from('scores').upsert({
-      session_id: SESSION_ID,
+      session_id    : SESSION_ID,
       username,
-      score:   (existing?.score   || 0) + 10,
-      answers: (existing?.answers || 0) + 1,
-      updated_at: new Date().toISOString()
+      score         : (existing?.score   || 0) + totalPoints,
+      answers       : (existing?.answers || 0) + 1,
+      last_round_won: state.round_number,
+      streak        : newStreak,
+      updated_at    : new Date().toISOString()
     }, { onConflict: 'session_id,username' })
 
-    return res.status(200).json({ ok: true, winner: true, username })
+    await supabase.from('game_state').update({
+      status     : 'revealed',
+      winner_name: username,
+      updated_at : new Date().toISOString()
+    }).eq('session_id', SESSION_ID)
+
+    return res.status(200).json({
+      ok: true, winner: true, username,
+      points, streakBonus, totalPoints, streak: newStreak
+    })
   }
 
   res.status(200).json({ ok: true, correct: false })
