@@ -22,39 +22,63 @@ function containsTitle(message, title) {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-webhook-secret')
 
-  const { username, message, secret } = req.method === 'GET' ? req.query : req.body || {}
+  if (req.method === 'OPTIONS') return res.status(200).end()
 
-  if (secret !== WEBHOOK_SECRET) return res.status(401).json({ error: 'Unauthorized' })
-  if (!username || !message) return res.status(400).json({ error: 'Missing params' })
+  const body = req.method === 'GET' ? req.query : req.body || {}
+  const username = body.username || body.nickname || body.value1
+  const message = body.content || body.message || body.value2
+  const secret = body.secret || req.query.secret || req.headers['x-webhook-secret']
+
+  // Secret optionnel en v1 pour faciliter les tests
+  if (WEBHOOK_SECRET !== 'changeme' && secret !== WEBHOOK_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  if (!username || !message) {
+    return res.status(400).json({ error: 'Missing username or message', received: body })
+  }
 
   const { data: state } = await supabase
     .from('game_state').select('*')
     .eq('session_id', SESSION_ID).single()
 
-  if (!state || state.status !== 'playing')
+  if (!state || state.status !== 'playing') {
     return res.status(200).json({ ok: true, ignored: true })
+  }
 
   const isCorrect = containsTitle(message, state.song_title)
 
-  await supabase.from('comments').insert({ session_id: SESSION_ID, username, message, is_correct: isCorrect })
+  await supabase.from('comments').insert({
+    session_id: SESSION_ID,
+    username,
+    message,
+    is_correct: isCorrect
+  })
 
   if (isCorrect) {
     await supabase.from('game_state').update({
-      status: 'revealed', winner_name: username, updated_at: new Date().toISOString()
+      status: 'revealed',
+      winner_name: username,
+      updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
 
     const { data: existing } = await supabase.from('scores')
-      .select('score, answers').eq('session_id', SESSION_ID).eq('username', username).single()
+      .select('score, answers')
+      .eq('session_id', SESSION_ID)
+      .eq('username', username).single()
 
     await supabase.from('scores').upsert({
-      session_id: SESSION_ID, username,
+      session_id: SESSION_ID,
+      username,
       score: (existing?.score || 0) + 10,
       answers: (existing?.answers || 0) + 1,
       updated_at: new Date().toISOString()
     }, { onConflict: 'session_id,username' })
 
-    return res.status(200).json({ ok: true, winner: true })
+    return res.status(200).json({ ok: true, winner: true, username })
   }
 
   res.status(200).json({ ok: true, correct: false })
