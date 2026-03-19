@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { supabase, SESSION_ID } from '../lib/supabase'
 
 const TIMER_DURATION = 30
+
+const adminSupabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+)
 
 export default function Admin() {
   const [gameState, setGameState]   = useState({ status: 'idle', song_title: '', song_artist: '', winner_name: '', round_number: 0 })
@@ -59,22 +65,18 @@ export default function Admin() {
   async function loadAll() {
     await Promise.all([loadGameState(), loadPlaylist(), loadScores(), loadComments()])
   }
-
   async function loadGameState() {
     const { data } = await supabase.from('game_state').select('*').eq('session_id', SESSION_ID).single()
     if (data) setGameState(data)
   }
-
   async function loadPlaylist() {
     const { data } = await supabase.from('playlist').select('*').eq('session_id', SESSION_ID).order('position')
     setPlaylist(data || [])
   }
-
   async function loadScores() {
     const { data } = await supabase.from('scores').select('*').eq('session_id', SESSION_ID).order('score', { ascending: false }).limit(10)
     setScores(data || [])
   }
-
   async function loadComments() {
     const { data } = await supabase.from('comments').select('*').eq('session_id', SESSION_ID).order('created_at', { ascending: false }).limit(40)
     setComments(data || [])
@@ -87,13 +89,9 @@ export default function Admin() {
     setLoading(true)
     const timerEnd = new Date(Date.now() + TIMER_DURATION * 1000).toISOString()
     await supabase.from('game_state').update({
-      status      : 'playing',
-      song_title  : nextUnplayed.title,
-      song_artist : nextUnplayed.artist,
-      winner_name : null,
-      timer_end   : timerEnd,
-      round_number: (gameState.round_number || 0) + 1,
-      updated_at  : new Date().toISOString()
+      status: 'playing', song_title: nextUnplayed.title, song_artist: nextUnplayed.artist,
+      winner_name: null, timer_end: timerEnd,
+      round_number: (gameState.round_number || 0) + 1, updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
     setLoading(false)
   }
@@ -101,30 +99,22 @@ export default function Admin() {
   async function handleReveal() {
     if (gameState.status === 'revealed') return
     clearInterval(timerRef.current)
-    await supabase.from('game_state').update({
-      status     : 'revealed',
-      updated_at : new Date().toISOString()
-    }).eq('session_id', SESSION_ID)
+    await supabase.from('game_state').update({ status: 'revealed', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
   }
 
   async function handleNext() {
     if (!nextUnplayed) return
     await supabase.from('playlist').update({ played: true }).eq('id', nextUnplayed.id)
     await supabase.from('game_state').update({
-      status      : 'idle',
-      song_title  : null,
-      song_artist : null,
-      winner_name : null,
-      timer_end   : null,
-      updated_at  : new Date().toISOString()
+      status: 'idle', song_title: null, song_artist: null,
+      winner_name: null, timer_end: null, updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
     loadPlaylist()
   }
 
   async function handleAddSong() {
     if (!newTitle.trim() || !newArtist.trim()) return
-    const pos = playlist.length
-    await supabase.from('playlist').insert({ session_id: SESSION_ID, title: newTitle.trim(), artist: newArtist.trim(), position: pos })
+    await supabase.from('playlist').insert({ session_id: SESSION_ID, title: newTitle.trim(), artist: newArtist.trim(), position: playlist.length })
     setNewTitle(''); setNewArtist('')
     loadPlaylist()
   }
@@ -136,7 +126,8 @@ export default function Admin() {
 
   async function handleResetScores() {
     if (!confirm('Réinitialiser tout le classement et les commentaires ?')) return
-    await fetch('/api/reset', { method: 'POST' })
+    await adminSupabase.from('scores').delete().eq('session_id', SESSION_ID)
+    await adminSupabase.from('comments').delete().eq('session_id', SESSION_ID)
     setScores([])
     setComments([])
   }
@@ -160,7 +151,7 @@ export default function Admin() {
         @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
         @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
         @keyframes winnerPop { 0%{transform:scale(0);opacity:0} 70%{transform:scale(1.06)} 100%{transform:scale(1);opacity:1} }
-        @keyframes glowBorder { 0%,100%{box-shadow:0 0 8px rgba(255,45,120,.3)} 50%{box-shadow:0 0 22px rgba(255,45,120,.7),0 0 40px rgba(255,45,120,.2)} }
+        @keyframes glowBorder { 0%,100%{box-shadow:0 0 8px rgba(255,45,120,.3)} 50%{box-shadow:0 0 22px rgba(255,45,120,.7)} }
         .tab-btn { background:transparent; border:none; border-bottom:2px solid transparent; color:rgba(255,255,255,.35); padding:14px 18px; font-family:'Orbitron',monospace; font-size:10px; cursor:pointer; transition:all .2s; text-transform:uppercase; letter-spacing:2px; }
         .tab-btn.active { color:#ff2d78; border-bottom-color:#ff2d78; }
         .btn-red { background:linear-gradient(135deg,#ff2d78,#b0005f); border:none; color:#fff; padding:15px 20px; border-radius:8px; font-family:'Orbitron',monospace; font-weight:700; font-size:13px; cursor:pointer; transition:all .18s; text-transform:uppercase; letter-spacing:1px; width:100%; }
@@ -178,7 +169,6 @@ export default function Admin() {
         .card { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:18px; margin-bottom:14px; }
         .card-pink { background:rgba(255,45,120,.04); border:1px solid rgba(255,45,120,.25); border-radius:12px; padding:18px; margin-bottom:14px; }
         .label { font-size:9px; color:rgba(255,255,255,.3); font-family:'Share Tech Mono',monospace; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:10px; display:block; }
-        .scroll { overflow-y:auto; }
         .scroll::-webkit-scrollbar { width:3px; }
         .scroll::-webkit-scrollbar-thumb { background:rgba(255,45,120,.4); border-radius:2px; }
         .song-row { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-radius:9px; margin-bottom:7px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02); transition:all .2s; }
@@ -211,7 +201,7 @@ export default function Admin() {
 
       <div style={{ padding: '18px', maxWidth: 1100, margin: '0 auto' }}>
 
-        {/* ═══ CONTROL ═══ */}
+        {/* CONTROL */}
         {tab === 'control' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 16 }}>
             <div>
@@ -247,16 +237,10 @@ export default function Admin() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                <button className="btn-red" disabled={!nextUnplayed || gameState.status !== 'idle' || loading} onClick={handleStart}>
-                  ▶ DÉMARRER
-                </button>
-                <button className="btn-cyan" disabled={gameState.status !== 'playing'} onClick={handleReveal}>
-                  👁 RÉVÉLER
-                </button>
+                <button className="btn-red" disabled={!nextUnplayed || gameState.status !== 'idle' || loading} onClick={handleStart}>▶ DÉMARRER</button>
+                <button className="btn-cyan" disabled={gameState.status !== 'playing'} onClick={handleReveal}>👁 RÉVÉLER</button>
               </div>
-              <button className="btn-ghost" disabled={gameState.status === 'playing'} onClick={handleNext}>
-                ⏭ CHANSON SUIVANTE
-              </button>
+              <button className="btn-ghost" disabled={gameState.status === 'playing'} onClick={handleNext}>⏭ CHANSON SUIVANTE</button>
 
               {gameState.status === 'revealed' && gameState.winner_name && (
                 <div style={{ marginTop: 14, background: 'rgba(255,215,0,.07)', border: '1px solid rgba(255,215,0,.4)', borderRadius: 10, padding: 16, textAlign: 'center', animation: 'winnerPop .5s ease' }}>
@@ -294,7 +278,7 @@ export default function Admin() {
           </div>
         )}
 
-        {/* ═══ PLAYLIST ═══ */}
+        {/* PLAYLIST */}
         {tab === 'playlist' && (
           <div style={{ maxWidth: 680 }}>
             <div className="card">
@@ -308,9 +292,7 @@ export default function Admin() {
                 <button className="btn-ghost" onClick={handleResetPlaylist}>🔄 Tout remettre à zéro</button>
               </div>
             </div>
-
             <span className="label">{playlist.filter(s => !s.played).length} chanson(s) restante(s) sur {playlist.length}</span>
-
             {playlist.map((song, i) => (
               <div key={song.id} className={`song-row ${!song.played && nextUnplayed?.id === song.id ? 'active' : ''} ${song.played ? 'played' : ''}`}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -331,7 +313,7 @@ export default function Admin() {
           </div>
         )}
 
-        {/* ═══ SCORES ═══ */}
+        {/* SCORES */}
         {tab === 'scores' && (
           <div style={{ maxWidth: 500 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
