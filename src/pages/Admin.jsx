@@ -18,7 +18,6 @@ export default function Admin() {
   const [newArtist, setNewArtist]     = useState('')
   const [tab,       setTab]           = useState('control')
   const [loading,   setLoading]       = useState(false)
-  const [showPodium, setShowPodium]   = useState(false)
 
   const timerRef = useRef(null)
 
@@ -167,9 +166,9 @@ export default function Admin() {
 
 
 
-  // Podium final
+  // Podium final — affiché sur l'overlay viewer
   async function handleEndSession() {
-    if (!confirm('Terminer la session et afficher le podium ?')) return
+    if (!confirm('Terminer la session et afficher le podium sur l\'écran viewer ?')) return
     await supabase.from('sessions').insert({
       session_id: SESSION_ID,
       ended_at: new Date().toISOString(),
@@ -177,7 +176,18 @@ export default function Admin() {
       winner: scores[0]?.username || null,
       top3: JSON.stringify(scores.slice(0, 3))
     })
-    setShowPodium(true)
+    await supabase.from('game_state').update({
+      status: 'podium',
+      round_number: 0,
+      updated_at: new Date().toISOString()
+    }).eq('session_id', SESSION_ID)
+  }
+
+  async function handleClosePodium() {
+    await supabase.from('game_state').update({
+      status: 'idle',
+      updated_at: new Date().toISOString()
+    }).eq('session_id', SESSION_ID)
   }
 
   const timerPct   = (timer / timerDuration) * 100
@@ -232,9 +242,15 @@ export default function Admin() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button className="btn-ghost" style={{ width: 'auto', padding: '7px 14px', color: '#c8a96e', borderColor: 'rgba(200,169,110,.3)' }} onClick={handleEndSession}>
-            🏆 FIN DE SESSION
-          </button>
+          {gameState.status !== 'podium' ? (
+            <button className="btn-ghost" style={{ width: 'auto', padding: '7px 14px', color: '#c8a96e', borderColor: 'rgba(200,169,110,.3)' }} onClick={handleEndSession}>
+              🏆 FIN DE SESSION
+            </button>
+          ) : (
+            <button className="btn-ghost" style={{ width: 'auto', padding: '7px 14px', color: '#e05555', borderColor: 'rgba(224,85,85,.3)' }} onClick={handleClosePodium}>
+              ✕ FERMER LE PODIUM
+            </button>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, border: `1px solid ${gameState.status === 'playing' ? 'rgba(0,245,255,.4)' : 'rgba(255,255,255,.1)'}`, background: gameState.status === 'playing' ? 'rgba(0,245,255,.06)' : 'transparent', fontSize: 10, fontFamily: 'Share Tech Mono' }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: gameState.status === 'playing' ? '#00f5ff' : '#444', animation: gameState.status === 'playing' ? 'pulse 1s infinite' : 'none' }} />
             {gameState.status === 'playing' ? '🔴 EN DIRECT' : gameState.status === 'revealed' ? '✅ RÉVÉLÉ' : '⏸ STANDBY'}
@@ -423,45 +439,6 @@ export default function Admin() {
         )}
       </div>
 
-      {/* ═══ PODIUM MODAL ═══ */}
-      {showPodium && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ textAlign: 'center', animation: 'podiumIn .6s ease' }}>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: 4, marginBottom: 30 }}>✦ FIN DE SESSION ✦</div>
-            <div style={{ fontSize: 48, fontWeight: 900, color: '#c8a96e', marginBottom: 10 }}>🏆</div>
-            <div style={{ display: 'flex', gap: 30, alignItems: 'flex-end', justifyContent: 'center', marginBottom: 40 }}>
-              {/* 2ème */}
-              {scores[1] && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 30 }}>🥈</div>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: '#c0c0c0', marginTop: 8 }}>@{scores[1].username}</div>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: '#c0c0c0' }}>{scores[1].score}pts</div>
-                </div>
-              )}
-              {/* 1er */}
-              {scores[0] && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 48 }}>🥇</div>
-                  <div style={{ fontWeight: 900, fontSize: 22, color: '#ffd700', textShadow: '0 0 20px #ffd700', marginTop: 8 }}>@{scores[0].username}</div>
-                  <div style={{ fontSize: 30, fontWeight: 900, color: '#ffd700', textShadow: '0 0 12px #ffd700' }}>{scores[0].score}pts</div>
-                </div>
-              )}
-              {/* 3ème */}
-              {scores[2] && (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 30 }}>🥉</div>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: '#cd7f32', marginTop: 8 }}>@{scores[2].username}</div>
-                  <div style={{ fontSize: 22, fontWeight: 900, color: '#cd7f32' }}>{scores[2].score}pts</div>
-                </div>
-              )}
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', marginBottom: 24 }}>
-              {gameState.round_number} rounds joués
-            </div>
-            <button className="btn-ghost" style={{ width: 'auto', padding: '12px 30px' }} onClick={() => setShowPodium(false)}>FERMER</button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
