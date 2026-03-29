@@ -223,7 +223,7 @@ export default function BullsRaceOverlay() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2vw', maxWidth: '90vw', width: '100%' }}>
             {[
               { icon: '🎯', title: 'OBJECTIF', text: 'Soyez le premier à atteindre la case 30 en répondant correctement aux questions !' },
-              { icon: '🥇', title: '1ER À RÉPONDRE', text: 'Le premier qui trouve la bonne réponse avance de 3 cases. Les suivants avancent d'1 case.' },
+              { icon: '🥇', title: '1ER À RÉPONDRE', text: 'Le premier qui trouve la bonne réponse avance de 3 cases. Les suivants avancent d\'1 case.' },
               { icon: '⭐', title: 'CASE BONUS', text: 'Vous avancez de 2 à 3 cases supplémentaires. La chance est avec vous !' },
               { icon: '💀', title: 'CASE PIÈGE', text: 'Vous reculez de 2 à 3 cases. Attention où vous mettez les pieds !' },
               { icon: '⚔️', title: 'CASE DUEL', text: 'Vous affrontez le joueur en tête ! Le prochain à répondre correctement gagne l'affrontement.' },
