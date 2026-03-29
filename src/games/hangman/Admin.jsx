@@ -13,6 +13,7 @@ export default function HangmanAdmin() {
   const [manualWord, setManualWord] = useState('')
   const [generating, setGenerating] = useState(false)
   const [loading,  setLoading]  = useState(false)
+  const [timerDuration, setTimerDuration] = useState(30)
   const [history,  setHistory]  = useState([])
   const [timer,    setTimer]    = useState(TIMER_SECONDS)
 
@@ -62,11 +63,18 @@ export default function HangmanAdmin() {
     const { data: pl } = await supabase.from('hangman_players').select('*').eq('session_id', SESSION_ID).order('order_index')
     if (!pl || pl.length === 0) return
     const nextIdx = (s.current_player_idx + 1) % pl.length
-    await supabase.from('hangman_state').update({
+    const newLives = Math.max(0, s.lives - 1)
+    const updates = {
       current_player_idx: nextIdx,
-      timer_end: new Date(Date.now() + TIMER_SECONDS * 1000).toISOString(),
+      lives: newLives,
+      timer_end: new Date(Date.now() + timerDuration * 1000).toISOString(),
       updated_at: new Date().toISOString()
-    }).eq('session_id', SESSION_ID)
+    }
+    if (newLives <= 0) {
+      updates.status = 'lost'
+      updates.timer_end = null
+    }
+    await supabase.from('hangman_state').update(updates).eq('session_id', SESSION_ID)
   }
 
   async function handleOpenRegistration() {
@@ -123,7 +131,7 @@ export default function HangmanAdmin() {
       lives: MAX_LIVES,
       current_player_idx: 0,
       winner: null,
-      timer_end: new Date(Date.now() + TIMER_SECONDS * 1000).toISOString(),
+      timer_end: new Date(Date.now() + timerDuration * 1000).toISOString(),
       updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
     setHistory(prev => [...prev, { word, theme: theme.trim(), time: new Date().toLocaleTimeString() }])
@@ -144,6 +152,33 @@ export default function HangmanAdmin() {
       status: 'waiting',
       word: '',
       theme: '',
+      guessed_letters: [],
+      wrong_letters: [],
+      lives: MAX_LIVES,
+      current_player_idx: 0,
+      winner: null,
+      timer_end: null,
+      updated_at: new Date().toISOString()
+    }).eq('session_id', SESSION_ID)
+  }
+
+  async function handleNextPlayer() {
+    const { data: pl } = await supabase.from('hangman_players').select('*').eq('session_id', SESSION_ID).order('order_index')
+    if (!pl || pl.length === 0) return
+    const nextIdx = (state.current_player_idx + 1) % pl.length
+    await supabase.from('hangman_state').update({
+      current_player_idx: nextIdx,
+      timer_end: new Date(Date.now() + timerDuration * 1000).toISOString(),
+      updated_at: new Date().toISOString()
+    }).eq('session_id', SESSION_ID)
+  }
+
+  async function handleSkipWord() {
+    if (!confirm('Passer ce mot sans pénalité ?')) return
+    setManualWord('')
+    await supabase.from('hangman_state').update({
+      status: 'waiting',
+      word: '',
       guessed_letters: [],
       wrong_letters: [],
       lives: MAX_LIVES,
@@ -263,6 +298,14 @@ export default function HangmanAdmin() {
                     )}
                     <input className="inp" placeholder="Ou entre le mot manuellement" value={manualWord} onChange={e => setManualWord(e.target.value.toUpperCase().replace(/[^A-Z]/g, ''))} style={{ marginBottom: 8 }} />
                   </div>
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginBottom: 6 }}>TIMER PAR LETTRE</div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {[10, 20, 30, 45, 60].map(s => (
+                        <button key={s} onClick={() => setTimerDuration(s)} style={{ flex: 1, padding: '6px 0', background: timerDuration === s ? 'rgba(0,245,255,.2)' : 'rgba(255,255,255,.05)', border: `1px solid ${timerDuration === s ? 'rgba(0,245,255,.5)' : 'rgba(255,255,255,.1)'}`, borderRadius: 6, color: timerDuration === s ? '#00f5ff' : 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', fontSize: 10, cursor: 'pointer' }}>{s}s</button>
+                      ))}
+                    </div>
+                  </div>
                   <button className="btn btn-pink" disabled={!manualWord || players.length === 0 || loading} onClick={handleStartGame}>
                     ▶ LANCER LA PARTIE
                   </button>
@@ -281,6 +324,8 @@ export default function HangmanAdmin() {
                       <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 4 }}>!L X pour une lettre · !R MOT pour le mot</div>
                     </div>
                   )}
+                  <button className="btn btn-cyan" onClick={handleNextPlayer}>⏭ JOUEUR SUIVANT</button>
+                  <button className="btn btn-ghost" onClick={handleSkipWord}>⏩ PASSER LE MOT</button>
                   <button className="btn btn-red" onClick={handleReveal}>💀 RÉVÉLER LE MOT</button>
                 </>
               )}

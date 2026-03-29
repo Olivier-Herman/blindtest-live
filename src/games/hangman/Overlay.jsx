@@ -115,21 +115,21 @@ export default function HangmanOverlay() {
               {i%3===0?'✦':'★'}
             </div>
           ))}
-          <div style={{ fontSize: '2vw', color: 'rgba(255,255,255,.25)', fontFamily: 'Share Tech Mono', letterSpacing: '.6em', marginBottom: '2vh' }}>
+          <div style={{ fontSize: '2vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.6em', marginBottom: '2vh' }}>
             {state.status === 'won' ? '✦ MOT TROUVÉ ✦' : '✦ PARTIE TERMINÉE ✦'}
           </div>
           <div style={{ fontSize: state.status === 'won' ? '3vw' : '10vw', marginBottom: '2vh' }}>{state.status === 'won' ? '🏆' : '💀'}</div>
           {state.status === 'won' ? (
             <>
               <div style={{ fontSize: '5vw', fontWeight: 900, color: '#ffd700', animation: 'shimmer 1.5s infinite' }}>@{state.winner}</div>
-              <div style={{ fontSize: '1.2vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginTop: '1.5vh' }}>A TROUVÉ LE MOT !</div>
+              <div style={{ fontSize: '1.2vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginTop: '1.5vh' }}>A TROUVÉ LE MOT !</div>
             </>
           ) : (
             <div style={{ fontSize: '1.5vw', color: '#ff3860', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>PERSONNE N'A TROUVÉ...</div>
           )}
           {word && (
             <div style={{ marginTop: '3vh', padding: '1.5vh 4vw', background: 'rgba(0,255,136,.08)', border: '1px solid rgba(0,255,136,.3)', borderRadius: '1.5vw', animation: 'riseUp .8s ease .5s both' }}>
-              <div style={{ fontSize: '.9vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginBottom: '.8vh', textAlign: 'center' }}>LE MOT ÉTAIT</div>
+              <div style={{ fontSize: '.9vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginBottom: '.8vh', textAlign: 'center' }}>LE MOT ÉTAIT</div>
               <div style={{ fontSize: '5vw', fontWeight: 900, color: '#00ff88', letterSpacing: '.3em' }}>{word}</div>
             </div>
           )}
@@ -201,7 +201,7 @@ export default function HangmanOverlay() {
               {/* Thème */}
               {state.theme && (
                 <div style={{ marginBottom: '3vh', animation: 'fadeIn .6s ease' }}>
-                  <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '.8vh' }}>INDICE — THÈME</div>
+                  <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '.8vh' }}>INDICE — THÈME</div>
                   <div style={{ fontSize: '3.5vw', fontWeight: 900, color: '#00f5ff', textShadow: '0 0 3vw rgba(0,245,255,.5)', letterSpacing: '.15em' }}>{state.theme.toUpperCase()}</div>
                 </div>
               )}
@@ -219,7 +219,7 @@ export default function HangmanOverlay() {
                     </div>
                   )
                 }) : (
-                  <div style={{ color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: '1.5vw' }}>EN ATTENTE...</div>
+                  <div style={{ color: '#fff', fontFamily: 'Share Tech Mono', fontSize: '1.5vw' }}>EN ATTENTE...</div>
                 )}
               </div>
 
@@ -234,7 +234,7 @@ export default function HangmanOverlay() {
 
               {/* Nb lettres */}
               {word && (
-                <div style={{ marginTop: '2vh', fontSize: '1vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
+                <div style={{ marginTop: '2vh', fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
                   {word.length} LETTRES · {guessed.length} TROUVÉES · {wrong.length} ERREURS
                 </div>
               )}
@@ -253,7 +253,7 @@ export default function HangmanOverlay() {
                 <div style={{ width: 1, height: '60%', background: 'rgba(255,255,255,.1)' }} />
                 {/* Joueur actuel */}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em', marginBottom: '.5vh' }}>C'EST LE TOUR DE</div>
+                  <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.3em', marginBottom: '.5vh' }}>C'EST LE TOUR DE</div>
                   <div style={{ fontSize: '3vw', fontWeight: 900, color: currentPlayer.color, textShadow: `0 0 2vw ${currentPlayer.color}60` }}>@{currentPlayer.username}</div>
                 </div>
                 {/* Instructions */}
