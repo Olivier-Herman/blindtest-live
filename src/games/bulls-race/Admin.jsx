@@ -191,6 +191,22 @@ export default function BullsRaceAdmin() {
     setLoading(false)
   }
 
+  async function handleDeleteQuestion(id) {
+    await supabase.from('race_questions').delete().eq('id', id)
+    loadQuestions()
+  }
+
+  async function handleResetQuestion(id) {
+    await supabase.from('race_questions').update({ used: false }).eq('id', id)
+    loadQuestions()
+  }
+
+  async function handleResetAllQuestions() {
+    if (!confirm('Remettre toutes les questions en disponible ?')) return
+    await supabase.from('race_questions').update({ used: false }).eq('session_id', SESSION_ID)
+    loadQuestions()
+  }
+
   async function handleShowRules() {
     setPreviousStatus(state.status)
     await supabase.from('race_state').update({ status: 'rules', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
@@ -497,9 +513,12 @@ export default function BullsRaceAdmin() {
                     {unusedCount} disponibles · {questions.length - unusedCount} utilisées
                   </div>
                 </div>
-                <button className="btn btn-red" style={{ width: 'auto', padding: '10px 20px' }} onClick={handleGenerate} disabled={generating}>
-                  {generating ? '⏳ GÉNÉRATION...' : '🤖 GÉNÉRER 40 QUESTIONS'}
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-ghost" style={{ width: 'auto', padding: '8px 14px', fontSize: 10 }} onClick={handleResetAllQuestions}>↺ Reset toutes</button>
+                  <button className="btn btn-red" style={{ width: 'auto', padding: '10px 20px' }} onClick={handleGenerate} disabled={generating}>
+                    {generating ? '⏳ GÉNÉRATION...' : '🤖 GÉNÉRER 40 QUESTIONS'}
+                  </button>
+                </div>
               </div>
 
               {questions.length === 0 ? (
@@ -509,14 +528,17 @@ export default function BullsRaceAdmin() {
               ) : (
                 <div className="scroll" style={{ maxHeight: 600, overflowY: 'auto' }}>
                   {questions.map((q, i) => (
-                    <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 8, marginBottom: 6, background: q.used ? 'rgba(255,255,255,.01)' : 'rgba(255,255,255,.025)', border: `1px solid ${q.used ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.08)'}`, opacity: q.used ? 0.4 : 1 }}>
+                    <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, marginBottom: 6, background: q.used ? 'rgba(255,255,255,.01)' : 'rgba(255,255,255,.025)', border: `1px solid ${q.used ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.08)'}`, opacity: q.used ? 0.5 : 1 }}>
                       <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', minWidth: 24 }}>#{i+1}</div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 12, fontWeight: 600 }}>{q.question}</div>
                         <div style={{ fontSize: 10, color: '#00ff88', fontFamily: 'Share Tech Mono', marginTop: 3 }}>→ {q.answer}</div>
                       </div>
-                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>{q.category}</div>
-                      {q.used && <div style={{ fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>✓ utilisée</div>}
+                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono' }}>{q.category}</div>
+                      {q.used && (
+                        <button onClick={() => handleResetQuestion(q.id)} style={{ background: 'transparent', border: '1px solid rgba(0,245,255,.3)', color: '#00f5ff', padding: '3px 8px', borderRadius: 5, cursor: 'pointer', fontSize: 10, fontFamily: 'Share Tech Mono', whiteSpace: 'nowrap' }}>↺ reset</button>
+                      )}
+                      <button onClick={() => handleDeleteQuestion(q.id)} style={{ background: 'transparent', border: '1px solid rgba(255,60,60,.3)', color: 'rgba(255,60,60,.6)', padding: '3px 8px', borderRadius: 5, cursor: 'pointer', fontSize: 10, flexShrink: 0 }}>✕</button>
                     </div>
                   ))}
                 </div>
