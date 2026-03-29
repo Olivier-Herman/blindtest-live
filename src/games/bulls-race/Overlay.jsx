@@ -169,7 +169,11 @@ export default function BullsRaceOverlay() {
         @keyframes pulse    { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
         @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
         @keyframes starFloat{ 0%{transform:translateY(0) rotate(0);opacity:.6} 100%{transform:translateY(-50vh) rotate(360deg);opacity:0} }
-        .pawn { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8vw; font-weight: 900; transition: left .8s cubic-bezier(.34,1.56,.64,1), top .8s cubic-bezier(.34,1.56,.64,1); z-index: 30; }
+        .pawn-wrapper { position: absolute; display: flex; flex-direction: column; align-items: center; transition: left .8s cubic-bezier(.34,1.56,.64,1), top .8s cubic-bezier(.34,1.56,.64,1); z-index: 30; }
+        .pawn { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1vw; font-weight: 900; position: relative; }
+        .pawn-label { font-family: 'Share Tech Mono', monospace; font-size: .65vw; font-weight: 900; text-align: center; margin-top: .2vw; white-space: nowrap; text-shadow: 0 0 4px rgba(0,0,0,.8); }
+        @keyframes pawnBounce { 0%{transform:scale(1) translateY(0)} 30%{transform:scale(1.5) translateY(-1vw)} 50%{transform:scale(1.2) translateY(-.2vw)} 70%{transform:scale(1.4) translateY(-.6vw)} 85%{transform:scale(1.1) translateY(-.1vw)} 100%{transform:scale(1) translateY(0)} }
+        @keyframes trailFade { 0%{opacity:.7;transform:scale(1)} 100%{opacity:0;transform:scale(.3)} }
         @keyframes wheelSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(var(--spin-deg))} }
         @keyframes wheelSpinInfinite { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
         @keyframes wheelGlow { 0%,100%{box-shadow:0 0 30px rgba(168,85,247,.4),0 0 60px rgba(168,85,247,.2)} 50%{box-shadow:0 0 60px rgba(168,85,247,.8),0 0 120px rgba(168,85,247,.4)} }
@@ -424,21 +428,41 @@ export default function BullsRaceOverlay() {
             }
             const playersHere = players.filter(pp => pp.position === pos)
             const myIndexHere = playersHere.findIndex(pp => pp.id === p.id)
-            const offsetX = (myIndexHere - (playersHere.length - 1) / 2) * 1.5
+            const offsetX = (myIndexHere - (playersHere.length - 1) / 2) * 2
             return (
-              <div key={p.id} className="pawn" style={{
-                width: '3vw', height: '3vw',
-                background: `radial-gradient(circle at 35% 35%, ${p.color}ee, ${p.color}88)`,
-                border: `2px solid ${p.color}`,
-                boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}55`,
+              <div key={p.id} className="pawn-wrapper" style={{
                 left: `calc(${cx}vw - 1.5vw + ${offsetX}vw)`,
-                top: `calc(${cy}vh - 1.5vw)`,
-                fontSize: '1.1vw',
-                color: '#000',
-                fontWeight: 900,
+                top: `calc(${cy}vh - 2.2vw)`,
                 zIndex: 40 + idx,
               }}>
-                {p.username.charAt(0).toUpperCase()}
+                {/* Traînée lumineuse */}
+                <div style={{
+                  position: 'absolute',
+                  width: '3vw', height: '3vw',
+                  borderRadius: '50%',
+                  background: p.color,
+                  opacity: 0,
+                  filter: `blur(.4vw)`,
+                  animation: 'trailFade .8s ease',
+                  animationFillMode: 'both',
+                  zIndex: -1,
+                }} />
+                {/* Pion */}
+                <div className="pawn" style={{
+                  width: '3vw', height: '3vw',
+                  background: `radial-gradient(circle at 35% 35%, ${p.color}ff, ${p.color}99)`,
+                  border: `2px solid ${p.color}`,
+                  boxShadow: `0 0 12px ${p.color}, 0 0 25px ${p.color}66`,
+                  color: '#000',
+                  animation: 'pawnBounce .8s cubic-bezier(.34,1.56,.64,1)',
+                  animationFillMode: 'both',
+                }}>
+                  {p.username.charAt(0).toUpperCase()}
+                </div>
+                {/* Pseudo complet */}
+                <div className="pawn-label" style={{ color: p.color, maxWidth: '5vw', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  @{p.username}
+                </div>
               </div>
             )
           })}
