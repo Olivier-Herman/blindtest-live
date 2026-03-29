@@ -116,11 +116,17 @@ export default function LiveOverlay() {
 
       {/* ══ SLOGAN DROIT ══ */}
       <div style={{ position: 'absolute', right: '3.5vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, textAlign: 'right' }}>
-        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.75vw', color: 'rgba(255,255,255,.2)', letterSpacing: '.6em', marginBottom: '1.5vh', animation: 'fadeSlide .8s ease .3s both' }}>BULLS AGENCY LIVE</div>
-        <div style={{ fontSize: '2vw', fontWeight: 900, color: '#ffffff', lineHeight: 1.5, animation: 'fadeSlide .8s ease .5s both' }}>
-          CONTENU<br /><span style={{ color: '#7b2fff', fontSize: '2.8vw' }}>LIVE</span><br />TIKTOK
+        <div style={{ fontSize: '2vw', fontWeight: 900, color: '#ffffff', lineHeight: 1.5, animation: 'fadeSlide .8s ease .2s both' }}>
+          JOUE EN
+          <br />
+          <span style={{ color: '#ff2d78', fontSize: '2.8vw' }}>DIRECT</span>
+          <br />
+          AVEC MOI
         </div>
-        <div style={{ width: '8vw', height: '2px', background: 'linear-gradient(270deg, #7b2fff, transparent)', marginTop: '1.5vh', marginLeft: 'auto' }} />
+        <div style={{ width: '8vw', height: '2px', background: 'linear-gradient(270deg, #ff2d78, transparent)', marginTop: '1.5vh', marginLeft: 'auto' }} />
+        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.8vw', color: 'rgba(255,255,255,.3)', lineHeight: 2, letterSpacing: '.2em', animation: 'fadeSlide .8s ease .4s both', marginTop: '1.5vh' }}>
+          INTERAGIS DANS LE CHAT<br />POUR PARTICIPER
+        </div>
       </div>
 
       {/* ══ TICKER BAS ══ */}
