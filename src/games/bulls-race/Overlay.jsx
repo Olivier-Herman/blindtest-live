@@ -263,7 +263,7 @@ export default function BullsRaceOverlay() {
           {/* Grille joueurs */}
           <div style={{ width: '100%', maxWidth: '85vw' }}>
             {players.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3vh 0', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', fontSize: '2vw', letterSpacing: '.3em', animation: 'qPulse 2s ease-in-out infinite' }}>
+              <div style={{ textAlign: 'center', padding: '3vh 0', color: '#fff', fontFamily: 'Share Tech Mono', fontSize: '2.5vw', letterSpacing: '.3em', fontWeight: 900, animation: 'qPulse 2s ease-in-out infinite' }}>
                 EN ATTENTE DES JOUEURS...
               </div>
             ) : (
