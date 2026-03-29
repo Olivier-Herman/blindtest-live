@@ -1,5 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const SESSION_ID = 'bulls-race'
@@ -26,11 +25,6 @@ const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', 
 const CASE_COLORS = { normal: 'rgba(255,255,255,.08)', bonus: 'rgba(255,215,0,.2)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.2)', start: 'rgba(255,255,255,.05)', finish: 'rgba(200,169,110,.3)' }
 
 export default function BullsRaceAdmin() {
-  const adminSupabase = useMemo(() => createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-  ), [])
-
   const [state,      setState]      = useState({ status: 'idle', current_question: '', current_answer: '', current_category: '', round_number: 0, first_answerer: null, duel_challenger: null, duel_opponent: null, case_effect: null, winner: null })
   const [players,    setPlayers]    = useState([])
   const [questions,  setQuestions]  = useState([])
@@ -162,8 +156,8 @@ export default function BullsRaceAdmin() {
 
   async function handleReset() {
     if (!confirm('Remettre à zéro toute la partie ? (joueurs, scores, état)')) return
-    await adminSupabase.from('race_players').delete().eq('session_id', SESSION_ID)
-    await adminSupabase.from('race_questions').update({ used: false }).eq('session_id', SESSION_ID)
+    await supabase.from('race_players').delete().eq('session_id', SESSION_ID)
+    await supabase.from('race_questions').update({ used: false }).eq('session_id', SESSION_ID)
     await supabase.from('race_state').update({
       status: 'idle', current_question: null, current_answer: null, current_category: null,
       round_number: 0, first_answerer: null, duel_challenger: null, duel_opponent: null,
@@ -181,7 +175,7 @@ export default function BullsRaceAdmin() {
   }
 
   async function handleRemovePlayer(playerId) {
-    await adminSupabase.from('race_players').delete().eq('id', playerId)
+    await supabase.from('race_players').delete().eq('id', playerId)
   }
 
   const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', finished: '#c8a96e' }
