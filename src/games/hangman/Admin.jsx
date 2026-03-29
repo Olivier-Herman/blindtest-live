@@ -71,8 +71,7 @@ export default function HangmanAdmin() {
 
   async function handleOpenRegistration() {
     await supabase.from('hangman_players').delete().eq('session_id', SESSION_ID)
-    await supabase.from('hangman_state').upsert({
-      session_id: SESSION_ID,
+    const { error } = await supabase.from('hangman_state').update({
       status: 'waiting',
       word: '',
       theme: '',
@@ -83,7 +82,8 @@ export default function HangmanAdmin() {
       winner: null,
       timer_end: null,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'session_id' })
+    }).eq('session_id', SESSION_ID)
+    if (error) console.error('handleOpenRegistration error:', error)
   }
 
   async function handleGenerateWord() {
@@ -156,12 +156,12 @@ export default function HangmanAdmin() {
 
   async function handleReset() {
     await supabase.from('hangman_players').delete().eq('session_id', SESSION_ID)
-    await supabase.from('hangman_state').upsert({
-      session_id: SESSION_ID, status: 'idle', word: '', theme: '',
+    await supabase.from('hangman_state').update({
+      status: 'idle', word: '', theme: '',
       guessed_letters: [], wrong_letters: [], lives: MAX_LIVES,
       current_player_idx: 0, winner: null, timer_end: null,
       updated_at: new Date().toISOString()
-    }, { onConflict: 'session_id' })
+    }).eq('session_id', SESSION_ID)
     setManualWord(''); setTheme(''); setHistory([])
   }
 
