@@ -215,6 +215,65 @@ export default function BullsRaceOverlay() {
         </div>
       )}
 
+      {/* ═══ ÉCRAN INSCRIPTIONS ═══ */}
+      {state.status === 'waiting' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'radial-gradient(ellipse at 50% 20%, rgba(255,45,120,.1) 0%, #000 70%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3vw', animation: 'fadeIn .6s ease' }}>
+
+          {/* Titre */}
+          <div style={{ textAlign: 'center', marginBottom: '4vh' }}>
+            <div style={{ fontSize: '1.4vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.6em', marginBottom: '1.5vh' }}>✦ BULLS RACE ✦</div>
+            <div style={{ fontSize: '4.5vw', fontWeight: 900, color: '#ff2d78', letterSpacing: '.2em', textShadow: '0 0 30px rgba(255,45,120,.6)', marginBottom: '1.5vh' }}>INSCRIPTIONS</div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1vw', padding: '.8vh 2vw', background: 'rgba(255,215,0,.08)', border: '1px solid rgba(255,215,0,.4)', borderRadius: '3vw' }}>
+              <span style={{ display: 'inline-block', width: '0.8vw', height: '0.8vw', borderRadius: '50%', background: '#ffd700', animation: 'pulse 1s infinite' }} />
+              <span style={{ fontSize: '1.6vw', color: '#ffd700', fontFamily: 'Share Tech Mono', letterSpacing: '.3em', fontWeight: 900 }}>
+                TAPEZ !join DANS LE CHAT
+              </span>
+            </div>
+          </div>
+
+          {/* Grille joueurs */}
+          <div style={{ width: '100%', maxWidth: '80vw' }}>
+            {players.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '4vh 0', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', fontSize: '1.4vw', letterSpacing: '.3em', animation: 'qPulse 2s ease-in-out infinite' }}>
+                EN ATTENTE DES JOUEURS...
+              </div>
+            ) : (
+              <>
+                <div style={{ textAlign: 'center', fontSize: '1.1vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginBottom: '2vh' }}>
+                  {players.length} / 10 JOUEUR{players.length > 1 ? 'S' : ''} INSCRIT{players.length > 1 ? 'S' : ''}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.2vw' }}>
+                  {players.map((p, i) => (
+                    <div key={p.id} style={{ background: 'rgba(255,255,255,.04)', border: `2px solid ${p.color}60`, borderRadius: '1vw', padding: '1.5vh 1vw', textAlign: 'center', animation: 'riseUp .5s cubic-bezier(.34,1.56,.64,1) both', animationDelay: `${i * .08}s` }}>
+                      <div style={{ width: '3vw', height: '3vw', borderRadius: '50%', background: `radial-gradient(circle at 35% 35%, ${p.color}ee, ${p.color}66)`, border: `3px solid ${p.color}`, boxShadow: `0 0 15px ${p.color}66`, margin: '0 auto .8vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4vw', fontWeight: 900, color: '#000' }}>
+                        {p.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ fontSize: '1.1vw', fontWeight: 700, color: p.color, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        @{p.username}
+                      </div>
+                      <div style={{ fontSize: '.7vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: '.3vh' }}>
+                        #{i + 1}
+                      </div>
+                    </div>
+                  ))}
+                  {/* Cases vides */}
+                  {Array.from({ length: Math.max(0, 10 - players.length) }).map((_, i) => (
+                    <div key={`empty-${i}`} style={{ background: 'rgba(255,255,255,.02)', border: '2px dashed rgba(255,255,255,.08)', borderRadius: '1vw', padding: '1.5vh 1vw', textAlign: 'center', minHeight: '8vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono' }}>?</div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={{ marginTop: '4vh', fontSize: '1vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
+            10 JOUEURS MAXIMUM • LA PARTIE COMMENCE BIENTÔT
+          </div>
+        </div>
+      )}
+
       {/* ═══ ÉCRAN RÈGLES ═══ */}
       {state.status === 'rules' && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'radial-gradient(ellipse at 50% 30%, rgba(123,47,255,.12) 0%, #000 70%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4vw', animation: 'fadeIn .6s ease' }}>
@@ -245,7 +304,7 @@ export default function BullsRaceOverlay() {
       )}
 
       {/* ═══ JEU NORMAL ═══ */}
-      {!isPodium && state.status !== 'rules' && (
+      {!isPodium && state.status !== 'rules' && state.status !== 'waiting' && (
         <>
           {/* Header */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: `${BOARD_TOP}vh`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2vw', zIndex: 20, borderBottom: '1px solid rgba(255,255,255,.05)', background: 'rgba(0,0,0,.4)' }}>
