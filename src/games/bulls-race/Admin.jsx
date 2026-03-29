@@ -390,10 +390,10 @@ export default function BullsRaceAdmin() {
                   <>
                     <div style={{ fontSize: 9, color: '#ff2d78', fontFamily: 'Share Tech Mono', letterSpacing: 2, marginBottom: 10 }}>{state.current_category?.toUpperCase()}</div>
                     <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.5, marginBottom: 14 }}>{state.current_question}</div>
-                    {state.status === 'revealed' && (
-                      <div style={{ padding: '10px 14px', background: 'rgba(0,255,136,.06)', border: '1px solid rgba(0,255,136,.3)', borderRadius: 8 }}>
-                        <div style={{ fontSize: 9, color: 'rgba(0,255,136,.6)', fontFamily: 'Share Tech Mono', marginBottom: 4 }}>RÉPONSE</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: '#00ff88' }}>{state.current_answer}</div>
+                    {state.current_answer && (
+                      <div style={{ padding: '10px 14px', background: state.status === 'revealed' || state.status === 'duel_result' ? 'rgba(0,255,136,.06)' : 'rgba(255,215,0,.04)', border: `1px solid ${state.status === 'revealed' || state.status === 'duel_result' ? 'rgba(0,255,136,.3)' : 'rgba(255,215,0,.2)'}`, borderRadius: 8 }}>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 4 }}>RÉPONSE {state.status === 'playing' ? '(en cours)' : ''}</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: state.status === 'revealed' || state.status === 'duel_result' ? '#00ff88' : '#ffd700' }}>{state.current_answer}</div>
                       </div>
                     )}
                     {state.first_answerer && (
