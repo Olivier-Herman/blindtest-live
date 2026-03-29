@@ -297,10 +297,10 @@ export default function BullsRaceAdmin() {
 
         {/* ═══ CONTRÔLE ═══ */}
         {tab === 'control' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 300px', gap: 14, alignItems: 'start' }}>
 
-            {/* Colonne 1 — Actions */}
-            <div>
+            {/* ── Colonne gauche : Actions + Question ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div className="card">
                 <span className="label">📋 état de la partie</span>
                 <div style={{ display: 'grid', gap: 8 }}>
@@ -312,10 +312,10 @@ export default function BullsRaceAdmin() {
                   )}
                   {state.status === 'waiting' && (
                     <>
-                      <div style={{ textAlign: 'center', padding: '10px 0', color: '#ffd700', fontFamily: 'Share Tech Mono', fontSize: 12 }}>
+                      <div style={{ textAlign: 'center', padding: '8px 0', color: '#ffd700', fontFamily: 'Share Tech Mono', fontSize: 12 }}>
                         👥 {players.length}/10 joueurs inscrits
                       </div>
-                      <div style={{ padding: '8px 12px', background: 'rgba(255,215,0,.05)', border: '1px solid rgba(255,215,0,.2)', borderRadius: 8, fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono' }}>
+                      <div style={{ padding: '6px 10px', background: 'rgba(255,215,0,.05)', border: '1px solid rgba(255,215,0,.2)', borderRadius: 8, fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono' }}>
                         Les viewers tapent <strong style={{ color: '#ffd700' }}>!join</strong> sur TikTok
                       </div>
                       <button className="btn btn-red" disabled={players.length === 0 || unusedCount === 0} onClick={handleStartRound}>▶ DÉMARRER LA PARTIE</button>
@@ -323,9 +323,9 @@ export default function BullsRaceAdmin() {
                   )}
                   {state.status === 'playing' && (
                     <>
-                      <div style={{ textAlign: 'center', padding: '14px 0' }}>
-                        <div style={{ fontSize: 48, fontWeight: 900, color: timer <= 5 ? '#ff3860' : '#00f5ff', lineHeight: 1 }}>{timer}</div>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 4 }}>secondes restantes</div>
+                      <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                        <div style={{ fontSize: 44, fontWeight: 900, color: timer <= 5 ? '#ff3860' : '#00f5ff', lineHeight: 1 }}>{timer}</div>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 3 }}>secondes restantes</div>
                       </div>
                       <button className="btn btn-cyan" onClick={handleReveal}>👁 RÉVÉLER LA RÉPONSE</button>
                     </>
@@ -339,168 +339,149 @@ export default function BullsRaceAdmin() {
                   )}
                   {state.status === 'duel' && (
                     <>
-                      <div style={{ padding: '10px 12px', background: 'rgba(255,45,120,.06)', border: '1px solid rgba(255,45,120,.3)', borderRadius: 8, textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 6 }}>⚔️ DUEL EN COURS</div>
+                      <div style={{ padding: '8px 10px', background: 'rgba(255,45,120,.06)', border: '1px solid rgba(255,45,120,.3)', borderRadius: 8, textAlign: 'center' }}>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 4 }}>⚔️ DUEL EN COURS</div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#ff2d78' }}>@{state.duel_challenger}</div>
-                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', margin: '4px 0' }}>VS</div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', margin: '3px 0' }}>VS</div>
                         <div style={{ fontSize: 13, fontWeight: 700, color: '#7b2fff' }}>@{state.duel_opponent || '???'}</div>
-                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', marginTop: 6 }}>Seuls ces joueurs peuvent répondre</div>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', marginTop: 4 }}>Seuls ces 2 joueurs peuvent répondre</div>
                       </div>
                       <button className="btn btn-cyan" onClick={handleReveal}>👁 RÉVÉLER LA RÉPONSE</button>
                     </>
                   )}
                   {state.status === 'duel_result' && (
                     <>
-                      <div style={{ padding: '10px 12px', background: 'rgba(255,140,0,.06)', border: '1px solid rgba(255,140,0,.3)', borderRadius: 8, textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 6 }}>🏆 RÉSULTAT DU DUEL</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#ffd700' }}>🥇 @{state.first_answerer} +3 cases</div>
-                        <div style={{ fontSize: 12, color: '#ff3860', marginTop: 4 }}>💀 adversaire -3 cases</div>
+                      <div style={{ padding: '8px 10px', background: 'rgba(255,140,0,.06)', border: '1px solid rgba(255,140,0,.3)', borderRadius: 8, textAlign: 'center' }}>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 4 }}>🏆 RÉSULTAT DUEL</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#ffd700' }}>🥇 @{state.first_answerer} +3</div>
+                        <div style={{ fontSize: 11, color: '#ff3860', marginTop: 3 }}>💀 adversaire -3</div>
                       </div>
                       <button className="btn btn-red" disabled={unusedCount === 0} onClick={handleStartRound}>▶ QUESTION SUIVANTE</button>
                       <button className="btn btn-gold" onClick={handleEndGame}>🏆 TERMINER LA PARTIE</button>
                     </>
                   )}
+                  {(state.status === 'wheel' || state.status === 'wheel_result') && (() => {
+                    const ef = state.case_effect ? (typeof state.case_effect === 'string' ? JSON.parse(state.case_effect) : state.case_effect) : {}
+                    return (
+                      <>
+                        <div style={{ padding: '8px 10px', background: 'rgba(168,85,247,.06)', border: '1px solid rgba(168,85,247,.3)', borderRadius: 8, textAlign: 'center' }}>
+                          <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 4 }}>🎡 ROUE MYSTÈRE</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#a855f7' }}>@{state.wheel_player}</div>
+                          {state.status === 'wheel_result' && ef.emoji && (
+                            <div style={{ marginTop: 6, fontSize: 12, color: '#fff', fontFamily: 'Share Tech Mono' }}>{ef.emoji} {ef.label}</div>
+                          )}
+                        </div>
+                        {state.status === 'wheel_result' && (
+                          <>
+                            <button className="btn btn-red" disabled={unusedCount === 0} onClick={handleStartRound}>▶ QUESTION SUIVANTE</button>
+                            <button className="btn btn-gold" onClick={handleEndGame}>🏆 TERMINER LA PARTIE</button>
+                          </>
+                        )}
+                      </>
+                    )
+                  })()}
                   {state.status === 'finished' && (
-                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                      <div style={{ fontSize: 32, marginBottom: 8 }}>🏆</div>
-                      <div style={{ fontWeight: 900, color: '#ffd700', fontSize: 18 }}>{state.winner}</div>
-                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 6 }}>A GAGNÉ LA PARTIE !</div>
+                    <div style={{ textAlign: 'center', padding: '12px 0' }}>
+                      <div style={{ fontSize: 28, marginBottom: 6 }}>🏆</div>
+                      <div style={{ fontWeight: 900, color: '#ffd700', fontSize: 16 }}>{state.winner}</div>
+                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 4 }}>A GAGNÉ !</div>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Webhook URL info */}
-              <div className="card">
-                <span className="label">🔗 TikFinity webhook URL</span>
-                <div style={{ padding: '8px 10px', background: 'rgba(0,0,0,.3)', borderRadius: 6, fontFamily: 'Share Tech Mono', fontSize: 10, color: 'rgba(255,255,255,.5)', wordBreak: 'break-all' }}>
-                  {window.location.origin}/api/race-webhook
-                </div>
-                <div style={{ marginTop: 8, fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>
-                  Champ: content • Format: application/x-www-form-urlencoded
-                </div>
-              </div>
-            </div>
-
-            {/* Colonne 2 — Question en cours */}
-            <div>
+              {/* Question + réponse */}
               <div className="card">
                 <span className="label">❓ question en cours</span>
                 {state.current_question ? (
                   <>
-                    <div style={{ fontSize: 9, color: '#ff2d78', fontFamily: 'Share Tech Mono', letterSpacing: 2, marginBottom: 10 }}>{state.current_category?.toUpperCase()}</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.5, marginBottom: 14 }}>{state.current_question}</div>
+                    <div style={{ fontSize: 9, color: '#ff2d78', fontFamily: 'Share Tech Mono', letterSpacing: 2, marginBottom: 8 }}>{state.current_category?.toUpperCase()}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.5, marginBottom: 10 }}>{state.current_question}</div>
                     {state.current_answer && (
-                      <div style={{ padding: '10px 14px', background: state.status === 'revealed' || state.status === 'duel_result' ? 'rgba(0,255,136,.06)' : 'rgba(255,215,0,.04)', border: `1px solid ${state.status === 'revealed' || state.status === 'duel_result' ? 'rgba(0,255,136,.3)' : 'rgba(255,215,0,.2)'}`, borderRadius: 8 }}>
-                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 4 }}>RÉPONSE {state.status === 'playing' ? '(en cours)' : ''}</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: state.status === 'revealed' || state.status === 'duel_result' ? '#00ff88' : '#ffd700' }}>{state.current_answer}</div>
+                      <div style={{ padding: '8px 12px', background: state.status === 'revealed' || state.status === 'duel_result' ? 'rgba(0,255,136,.06)' : 'rgba(255,215,0,.04)', border: `1px solid ${state.status === 'revealed' || state.status === 'duel_result' ? 'rgba(0,255,136,.3)' : 'rgba(255,215,0,.2)'}`, borderRadius: 8 }}>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 3 }}>RÉPONSE</div>
+                        <div style={{ fontSize: 18, fontWeight: 900, color: state.status === 'revealed' || state.status === 'duel_result' ? '#00ff88' : '#ffd700' }}>{state.current_answer}</div>
                       </div>
                     )}
                     {state.first_answerer && (
-                      <div style={{ marginTop: 10, padding: '8px 12px', background: 'rgba(255,215,0,.06)', border: '1px solid rgba(255,215,0,.25)', borderRadius: 8, fontSize: 12, color: '#ffd700', fontFamily: 'Share Tech Mono' }}>
+                      <div style={{ marginTop: 8, padding: '6px 10px', background: 'rgba(255,215,0,.06)', border: '1px solid rgba(255,215,0,.25)', borderRadius: 8, fontSize: 11, color: '#ffd700', fontFamily: 'Share Tech Mono' }}>
                         🥇 1er : @{state.first_answerer}
                       </div>
                     )}
                   </>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '30px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 11 }}>
+                  <div style={{ textAlign: 'center', padding: '20px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 10 }}>
                     Aucune question en cours
                   </div>
                 )}
               </div>
 
-              {/* Case effect */}
-              {state.case_effect && (
-                <div className="card" style={{ border: '1px solid rgba(255,45,120,.3)', background: 'rgba(255,45,120,.04)' }}>
-                  <span className="label">⚡ dernier effet de case</span>
-                  <div style={{ fontSize: 13, fontFamily: 'Share Tech Mono', color: '#fff' }}>
-                    {formatEffect(typeof state.case_effect === 'string' ? JSON.parse(state.case_effect) : state.case_effect)}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Colonne 3 — Log des événements */}
-            <div>
-              <div className="card" style={{ height: 500 }}>
+              {/* Événements */}
+              <div className="card">
                 <span className="label">📋 événements</span>
-                <div className="scroll" style={{ height: 440, overflowY: 'auto' }}>
+                <div className="scroll" style={{ maxHeight: 160, overflowY: 'auto' }}>
                   {log.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono', fontSize: 11 }}>
-                      Aucun événement
-                    </div>
+                    <div style={{ textAlign: 'center', padding: '16px 0', color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono', fontSize: 10 }}>Aucun événement</div>
                   ) : log.map((l, i) => (
                     <div key={i} className="log-row">
-                      <span style={{ color: '#ff2d78', marginRight: 8 }}>{l.time}</span>
+                      <span style={{ color: '#ff2d78', marginRight: 6, fontSize: 10 }}>{l.time}</span>
                       {l.text}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* ═══ PLATEAU ═══ */}
-        {tab === 'plateau' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
-            {/* Board grid */}
+            {/* ── Colonne centrale : Plateau ── */}
             <div className="card">
-              <span className="label">🗺 plateau de jeu — 30 cases</span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4, marginBottom: 12 }}>
-                {/* Row 0 (top): cases 25-30 */}
+              <span className="label">🗺 plateau — 30 cases</span>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4, marginBottom: 10 }}>
                 {[25,26,27,28,29,30].map(id => renderBoardCell(id, players))}
-                {/* Row 1: cases 19-24 right to left */}
                 {[24,23,22,21,20,19].map(id => renderBoardCell(id, players))}
-                {/* Row 2: cases 13-18 */}
                 {[13,14,15,16,17,18].map(id => renderBoardCell(id, players))}
-                {/* Row 3: cases 7-12 right to left */}
                 {[12,11,10,9,8,7].map(id => renderBoardCell(id, players))}
-                {/* Row 4 (bottom): cases 1-6 */}
                 {[1,2,3,4,5,6].map(id => renderBoardCell(id, players))}
               </div>
-              {/* Légende */}
-              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 10 }}>
-                {[['bonus','⭐ Bonus +cases'],['trap','💀 Piège -cases'],['duel','⚔️ Duel'],['joker','🃏 Joker']].map(([type, label]) => (
-                  <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono' }}>
-                    <div style={{ width: 14, height: 14, borderRadius: 3, background: CASE_COLORS[type] }} />
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 8 }}>
+                {[['bonus','⭐ Bonus'],['trap','💀 Piège'],['duel','⚔️ Duel'],['joker','🃏 Joker'],['wheel','🎡 Mystère']].map(([type, label]) => (
+                  <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono' }}>
+                    <div style={{ width: 12, height: 12, borderRadius: 3, background: CASE_COLORS[type] }} />
                     {label}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Player list */}
-            <div>
-              <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <span className="label" style={{ marginBottom: 0 }}>👥 joueurs ({players.length}/10)</span>
-                </div>
-                {players.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '30px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 11 }}>
-                    Aucun joueur inscrit<br />Les viewers tapent !join
-                  </div>
-                ) : players.map((p, i) => (
-                  <div key={p.id} className="player-row">
-                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: p.color, flexShrink: 0, boxShadow: `0 0 6px ${p.color}` }} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700 }}>
-                        {i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}@{p.username}
-                        {p.is_blocked && <span style={{ marginLeft: 6, fontSize: 9, color: '#ff2d78', fontFamily: 'Share Tech Mono' }}>BLOQUÉ</span>}
-                      </div>
-                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 2 }}>
-                        Case {p.position}/30 — {CASE_ICONS[BOARD[p.position]?.type || 'normal']} {BOARD[p.position]?.type}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                      <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, -1)}>−</button>
-                      <span style={{ fontSize: 13, fontWeight: 900, color: p.color, minWidth: 26, textAlign: 'center' }}>{p.position}</span>
-                      <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, 1)}>+</button>
-                      <button className="mini-btn" style={{ borderColor: 'rgba(255,60,60,.3)', color: 'rgba(255,60,60,.5)' }} onClick={() => handleRemovePlayer(p.id)}>✕</button>
-                    </div>
-                  </div>
-                ))}
+            {/* ── Colonne droite : Joueurs ── */}
+            <div className="card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <span className="label" style={{ marginBottom: 0 }}>👥 joueurs ({players.length}/10)</span>
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono' }}>{unusedCount} Q restantes</span>
               </div>
+              {players.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 11 }}>
+                  Aucun joueur<br />tapent !join
+                </div>
+              ) : players.map((p, i) => (
+                <div key={p.id} className="player-row">
+                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: p.color, flexShrink: 0, boxShadow: `0 0 6px ${p.color}` }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}@{p.username}
+                      {p.is_blocked && <span style={{ marginLeft: 5, fontSize: 9, color: '#ff2d78' }}>🔒</span>}
+                    </div>
+                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 2 }}>
+                      Case {p.position}/30 — {CASE_ICONS[BOARD[p.position]?.type || 'normal']} {BOARD[p.position]?.type}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 3, alignItems: 'center', flexShrink: 0 }}>
+                    <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, -1)}>−</button>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: p.color, minWidth: 22, textAlign: 'center' }}>{p.position}</span>
+                    <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, 1)}>+</button>
+                    <button className="mini-btn" style={{ borderColor: 'rgba(255,60,60,.3)', color: 'rgba(255,60,60,.5)' }} onClick={() => handleRemovePlayer(p.id)}>✕</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
