@@ -650,19 +650,7 @@ export default function BullsRaceOverlay() {
 function WheelScreen({ state }) {
   const ef = state.case_effect ? (typeof state.case_effect === 'string' ? JSON.parse(state.case_effect) : state.case_effect) : {}
   const isResult = state.status === 'wheel_result'
-
-  // Auto-appel après 4s pour déclencher le résultat
-  useEffect(() => {
-    if (state.status !== 'wheel') return
-    const t = setTimeout(async () => {
-      try {
-        await fetch('https://blindtest-live.vercel.app/api/race-wheel-apply', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }
-        })
-      } catch(e) { console.error('wheel-apply error', e) }
-    }, 4000)
-    return () => clearTimeout(t)
-  }, [state.status])
+  const [showResult, setShowResult] = useState(false)
 
   const SEGMENTS = [
     { id: 'blocked',  label: 'Bloqué 1 tour',              emoji: '🔒', color: '#ff2d78' },
@@ -678,15 +666,48 @@ function WheelScreen({ state }) {
   const targetAngle = resultIdx >= 0 ? (360 - (resultIdx * segAngle + segAngle / 2)) : 0
   const totalSpin = 1800 + targetAngle
 
+  // Étape 1 — après 4s, appelle wheel-apply (passe status à wheel_result)
+  useEffect(() => {
+    if (state.status !== 'wheel') return
+    const t = setTimeout(async () => {
+      try {
+        await fetch('https://blindtest-live.vercel.app/api/race-wheel-apply', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }
+        })
+      } catch(e) { console.error('wheel-apply error', e) }
+    }, 4000)
+    return () => clearTimeout(t)
+  }, [state.status])
+
+  // Étape 2 — quand wheel_result, affiche le résultat 2s puis revient au jeu (status revealed)
+  useEffect(() => {
+    if (state.status !== 'wheel_result') return
+    setShowResult(false)
+    const t1 = setTimeout(() => setShowResult(true), 5500) // après animation roue
+    const t2 = setTimeout(async () => {
+      try {
+        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm')
+        // On passe en revealed via Supabase direct
+        const sb = createClient(
+          import.meta.env.VITE_SUPABASE_URL,
+          import.meta.env.VITE_SUPABASE_ANON_KEY
+        )
+        await sb.from('race_state').update({ status: 'revealed', updated_at: new Date().toISOString() }).eq('session_id', 'bulls-race')
+      } catch(e) { console.error('back to revealed error', e) }
+    }, 8000) // 5.5s anim + 2s affichage résultat
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [state.status])
+
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 70, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.95)' }}>
-      <div style={{ fontSize: '1.5vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '1vh', fontWeight: 900 }}>🎡 CASE MYSTÈRE</div>
-      <div style={{ fontSize: '3vw', fontWeight: 900, color: '#a855f7', textShadow: '0 0 3vw rgba(168,85,247,.8)', letterSpacing: '.2em', marginBottom: '3vh' }}>@{state.wheel_player}</div>
+      {/* Titre */}
+      <div style={{ fontSize: '1.3vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '.8vh', fontWeight: 900 }}>🎡 CASE MYSTÈRE</div>
+      <div style={{ fontSize: '2.5vw', fontWeight: 900, color: '#a855f7', textShadow: '0 0 3vw rgba(168,85,247,.8)', letterSpacing: '.2em', marginBottom: '2vh' }}>@{state.wheel_player}</div>
 
-      {/* Roue */}
-      <div style={{ position: 'relative', width: '38vw', height: '38vw', marginBottom: '3vh' }}>
-        <div style={{ position: 'absolute', top: '-2vw', left: '50%', transform: 'translateX(-50%)', zIndex: 10, fontSize: '3vw', filter: 'drop-shadow(0 0 1vw #fff)' }}>▼</div>
-        <svg viewBox="0 0 400 400" style={{ width: '100%', height: '100%', transformOrigin: '50% 50%', filter: 'drop-shadow(0 0 2vw rgba(168,85,247,.6))', animation: isResult ? `wheelSpin 5s cubic-bezier(.17,.67,.12,1) forwards` : 'wheelSpinInfinite 2s linear infinite', '--spin-deg': `${totalSpin}deg` }}>
+      {/* Roue — taille réduite */}
+      <div style={{ position: 'relative', width: '28vw', height: '28vw', marginBottom: '2vh' }}>
+        <div style={{ position: 'absolute', top: '-1.8vw', left: '50%', transform: 'translateX(-50%)', zIndex: 10, fontSize: '2.5vw', filter: 'drop-shadow(0 0 .5vw #fff)' }}>▼</div>
+        <svg viewBox="0 0 400 400" style={{ width: '100%', height: '100%', transformOrigin: '50% 50%', filter: 'drop-shadow(0 0 2vw rgba(168,85,247,.6))', animation: isResult ? `wheelSpin 5s cubic-bezier(.17,.67,.12,1) forwards` : 'wheelSpinInfinite 1.5s linear infinite', '--spin-deg': `${totalSpin}deg` }}>
           {SEGMENTS.map((seg, i) => {
             const startAngle = (i * segAngle - 90) * Math.PI / 180
             const endAngle = ((i + 1) * segAngle - 90) * Math.PI / 180
@@ -709,14 +730,15 @@ function WheelScreen({ state }) {
         </svg>
       </div>
 
-      {isResult && ef.emoji && (
-        <div style={{ textAlign: 'center', animation: 'wheelResult .6s cubic-bezier(.34,1.56,.64,1) 5.2s both', opacity: 0 }}>
-          <div style={{ fontSize: '5vw', marginBottom: '1vh' }}>{ef.emoji}</div>
-          <div style={{ fontSize: '3.5vw', fontWeight: 900, color: '#fff' }}>{ef.label} !</div>
+      {/* Résultat — apparaît après l'animation */}
+      {isResult && showResult && ef.emoji && (
+        <div style={{ textAlign: 'center', animation: 'bigTextIn .5s ease' }}>
+          <div style={{ fontSize: '4vw', marginBottom: '.8vh' }}>{ef.emoji}</div>
+          <div style={{ fontSize: '3vw', fontWeight: 900, color: '#fff', textShadow: '0 0 2vw rgba(168,85,247,.8)' }}>{ef.label} !</div>
         </div>
       )}
       {!isResult && (
-        <div style={{ fontSize: '1.2vw', color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
+        <div style={{ fontSize: '1.1vw', color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
           LA ROUE TOURNE...
         </div>
       )}
