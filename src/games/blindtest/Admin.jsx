@@ -1,13 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { supabase, SESSION_ID } from '../../lib/supabase'
 
-const adminSupabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-)
-
 export default function Admin() {
+  const adminSupabase = useMemo(() => createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+  ), [])
   const [gameState, setGameState]     = useState({ status: 'idle', song_title: '', song_artist: '', winner_name: '', round_number: 0, songs_remaining: 0 })
   const [playlist,  setPlaylist]      = useState([])
   const [scores,    setScores]        = useState([])
@@ -18,6 +17,8 @@ export default function Admin() {
   const [newArtist, setNewArtist]     = useState('')
   const [tab,       setTab]           = useState('control')
   const [loading,   setLoading]       = useState(false)
+  const [theme,      setTheme]         = useState('')
+  const [generating, setGenerating]    = useState(false)
 
   const timerRef = useRef(null)
 
@@ -137,6 +138,28 @@ export default function Admin() {
     if (!confirm('Remettre toutes les chansons en non-jouées ?')) return
     await supabase.from('playlist').update({ played: false }).eq('session_id', SESSION_ID)
     loadPlaylist()
+  }
+
+  // Génération IA
+  async function handleGeneratePlaylist() {
+    if (!theme.trim() || generating) return
+    setGenerating(true)
+    try {
+      const res = await fetch('https://blindtest-live.vercel.app/api/blindtest-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme: theme.trim(), sessionId: SESSION_ID })
+      })
+      const data = await res.json()
+      if (data.success) {
+        await loadPlaylist()
+        setTheme('')
+        alert(`${data.count} chansons générées sur le thème "${theme}" !`)
+      } else {
+        alert('Erreur : ' + data.error)
+      }
+    } catch(e) { alert('Erreur réseau') }
+    setGenerating(false)
   }
 
   // Import CSV
@@ -379,6 +402,32 @@ export default function Admin() {
               </div>
               <div style={{ marginTop: 10, fontSize: 10, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>
                 Format CSV : Titre,Artiste (une chanson par ligne)
+              </div>
+            </div>
+
+            {/* Générateur IA */}
+            <div className="card">
+              <span className="label">🤖 générer une playlist par thème (IA)</span>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                <input
+                  className="inp"
+                  placeholder='Ex: Tubes années 80, Rap français, Disney, Charts 2024...'
+                  value={theme}
+                  onChange={e => setTheme(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleGeneratePlaylist()}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  className="btn-red"
+                  onClick={handleGeneratePlaylist}
+                  disabled={generating || !theme.trim()}
+                  style={{ padding: '10px 20px', width: 'auto', flexShrink: 0 }}
+                >
+                  {generating ? '⏳ GÉNÉRATION...' : '✨ GÉNÉRER 20 CHANSONS'}
+                </button>
+              </div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>
+                Claude génère 20 chansons adaptées au thème et les ajoute directement à la playlist
               </div>
             </div>
 

@@ -84,15 +84,18 @@ export default function Overlay() {
         @keyframes wave        { 0%,100%{transform:scaleY(0.2)} 50%{transform:scaleY(1)} }
         @keyframes qPulse      { 0%,100%{opacity:.7} 50%{opacity:1} }
         @keyframes revealIn    { 0%{transform:perspective(700px) rotateX(-90deg) scale(.9);opacity:0} 100%{transform:perspective(700px) rotateX(0deg) scale(1);opacity:1} }
+        @keyframes revealTitle { 0%{letter-spacing:2em;opacity:0} 100%{letter-spacing:.05em;opacity:1} }
+        @keyframes revealArtist{ from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
         @keyframes winnerIn    { 0%{transform:scale(0) rotate(-6deg);opacity:0} 65%{transform:scale(1.07) rotate(.5deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
         @keyframes fadeSlide   { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes timerPulse  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
         @keyframes podiumBg    { from{opacity:0} to{opacity:1} }
         @keyframes riseUp      { 0%{transform:translateY(120%) scale(.8);opacity:0} 60%{transform:translateY(-8%) scale(1.04)} 100%{transform:translateY(0) scale(1);opacity:1} }
-        @keyframes crownDrop   { 0%{transform:translateY(-80px) rotate(-15deg) scale(.5);opacity:0} 60%{transform:translateY(10px) rotate(5deg) scale(1.1)} 100%{transform:translateY(0) rotate(0) scale(1);opacity:1} }
         @keyframes shimmer     { 0%,100%{text-shadow:0 0 20px #ffd700,0 0 40px rgba(255,215,0,.4)} 50%{text-shadow:0 0 40px #ffd700,0 0 80px rgba(255,215,0,.7),0 0 120px rgba(255,215,0,.3)} }
         @keyframes starFloat   { 0%{transform:translateY(0) rotate(0);opacity:1} 100%{transform:translateY(-40vh) rotate(360deg);opacity:0} }
         @keyframes scanline    { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+        @keyframes streakPop   { 0%{transform:scale(0) rotate(-10deg);opacity:0} 60%{transform:scale(1.3) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+        @keyframes streakGlow  { 0%,100%{text-shadow:0 0 20px #ff8c00,0 0 40px rgba(255,140,0,.4)} 50%{text-shadow:0 0 40px #ff8c00,0 0 80px rgba(255,140,0,.7)} }
         .wbar { display:inline-block; border-radius:2px 2px 0 0; transform-origin:bottom; }
         .podium-card { border-radius:1.5vw; padding:2.5vw 3vw; text-align:center; animation:riseUp .8s cubic-bezier(.34,1.56,.64,1) both; }
       `}</style>
@@ -234,14 +237,14 @@ export default function Overlay() {
 
           {/* Morceaux restants */}
           {gameState.songs_remaining > 0 && (
-            <div style={{ position: 'absolute', top: '4vh', left: '3vw', zIndex: 20, fontFamily: 'Share Tech Mono', fontSize: '1.1vw', color: 'rgba(255,255,255,.25)', letterSpacing: '0.2em' }}>
+            <div style={{ position: 'absolute', top: '4vh', left: '3vw', zIndex: 20, fontFamily: 'Share Tech Mono', fontSize: '1.1vw', color: '#fff', letterSpacing: '0.2em', fontWeight: 700 }}>
               {gameState.songs_remaining} morceau{gameState.songs_remaining > 1 ? 'x' : ''} restant{gameState.songs_remaining > 1 ? 's' : ''}
             </div>
           )}
 
           {/* Round counter */}
           {gameState.round_number > 0 && (
-            <div style={{ position: 'absolute', top: '4vh', right: '3vw', fontSize: '1.2vw', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', zIndex: 20 }}>
+            <div style={{ position: 'absolute', top: '4vh', right: '3vw', fontSize: '1.2vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', fontWeight: 700, zIndex: 20 }}>
               ROUND {gameState.round_number}
             </div>
           )}
@@ -260,7 +263,7 @@ export default function Overlay() {
             {gameState.status !== 'revealed' ? (
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '15vw', fontWeight: 900, color: '#c8a96e', animation: 'qPulse 2.5s ease-in-out infinite', lineHeight: 1 }}>?</div>
-                <div style={{ fontSize: '2vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '0.5em', marginTop: '1.5vw' }}>
+                <div style={{ fontSize: '2vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '0.5em', marginTop: '1.5vw' }}>
                   QUELLE EST CETTE CHANSON ?
                 </div>
                 {gameState.status === 'playing' && (
@@ -271,25 +274,39 @@ export default function Overlay() {
                   </div>
                 )}
                 {gameState.status === 'idle' && (
-                  <div style={{ marginTop: '2vw', fontSize: '1.4vw', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', letterSpacing: '0.4em' }}>
+                  <div style={{ marginTop: '2vw', fontSize: '1.4vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '0.4em' }}>
                     LE ROUND COMMENCE BIENTÔT...
                   </div>
                 )}
               </div>
             ) : (
               <div style={{ textAlign: 'center', animation: 'revealIn .7s cubic-bezier(.34,1.56,.64,1)', padding: '0 5vw' }}>
-                <div style={{ fontSize: '1.4vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '0.6em', marginBottom: '1.5vw' }}>✦ LA RÉPONSE ÉTAIT ✦</div>
-                <div style={{ fontSize: '6.5vw', fontWeight: 900, color: '#e8e8e8', textShadow: '0 0 30px rgba(255,255,255,.2)', lineHeight: 1.1, marginBottom: '0.8vw' }}>
+                <div style={{ fontSize: '1.4vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '0.6em', marginBottom: '1.5vw', fontWeight: 700 }}>✦ LA RÉPONSE ÉTAIT ✦</div>
+                <div style={{ fontSize: '6.5vw', fontWeight: 900, color: '#fff', textShadow: '0 0 30px rgba(255,255,255,.4), 0 0 60px rgba(255,255,255,.2)', lineHeight: 1.1, marginBottom: '0.8vw', animation: 'revealTitle .8s cubic-bezier(.34,1.56,.64,1)' }}>
                   {gameState.song_title}
                 </div>
-                <div style={{ fontSize: '2.6vw', color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', letterSpacing: '0.2em' }}>— {gameState.song_artist}</div>
+                <div style={{ fontSize: '2.6vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '0.2em', fontWeight: 700 }}>— {gameState.song_artist}</div>
                 {gameState.winner_name && (
                   <div style={{ marginTop: '2.5vw', display: 'inline-block', padding: '1vw 3vw', background: 'rgba(200,169,110,.1)', border: '1px solid rgba(200,169,110,.4)', borderRadius: '5vw', animation: 'winnerIn .5s ease .4s both' }}>
-                    <span style={{ fontSize: '2vw', color: '#c8a96e', fontWeight: 900, letterSpacing: '0.15em' }}>
+                    <span style={{ fontSize: '2vw', color: '#fff', fontWeight: 900, letterSpacing: '0.15em' }}>
                       🏆 @{gameState.winner_name} A TROUVÉ !
                     </span>
                   </div>
                 )}
+                {(() => {
+                  const winner = scores.find(s => s.username === gameState.winner_name)
+                  if (!winner || winner.streak < 3) return null
+                  return (
+                    <div style={{ marginTop: '2vw', animation: 'streakPop .6s cubic-bezier(.34,1.56,.64,1) .8s both' }}>
+                      <div style={{ fontSize: '3vw', fontWeight: 900, color: '#ff8c00', animation: 'streakGlow 1s ease-in-out infinite', letterSpacing: '.1em' }}>
+                        🔥 STREAK ×{winner.streak} ! 🔥
+                      </div>
+                      <div style={{ fontSize: '1.2vw', color: '#fff', fontFamily: 'Share Tech Mono', marginTop: '.5vw' }}>
+                        +3 pts BONUS !
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             )}
           </div>
@@ -300,7 +317,7 @@ export default function Overlay() {
               <div style={{ fontSize: '5vw', fontWeight: 900, color: timerColor, lineHeight: 1 }}>
                 {availablePoints}<span style={{ fontSize: '1.5vw', color: 'rgba(255,255,255,.3)', marginLeft: '0.3vw', fontFamily: 'Share Tech Mono' }}>pts</span>
               </div>
-              <div style={{ fontSize: '1.1vw', color: 'rgba(255,255,255,.25)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', marginTop: '0.2vw' }}>{timer}s</div>
+              <div style={{ fontSize: '1.1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', marginTop: '0.2vw', fontWeight: 700 }}>{timer}s</div>
             </div>
           )}
 
@@ -311,12 +328,19 @@ export default function Overlay() {
                 🏆 TOP {Math.min(scores.length, 5)}
               </div>
               {scores.slice(0, 5).map((p, i) => (
-                <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '2vw', fontSize: '1.7vw', fontFamily: 'Share Tech Mono', marginBottom: '0.5vw', color: i === 0 ? '#c8a96e' : i === 1 ? '#aaaaaa' : i === 2 ? '#9a7a5a' : 'rgba(255,255,255,.4)' }}>
-                  <span>
+                <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '2vw', fontSize: '1.7vw', fontFamily: 'Share Tech Mono', marginBottom: '0.6vw', color: i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#fff' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '.4vw' }}>
                     {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`} {p.username}
-                    {p.streak >= 2 && <span style={{ fontSize: '1.1vw', color: '#e8c96d', marginLeft: '0.5vw' }}>🔥×{p.streak}</span>}
+                    {p.streak >= 3 && (
+                      <span style={{ fontSize: '1.3vw', color: '#ff8c00', fontWeight: 900, animation: 'streakGlow 1.5s ease-in-out infinite' }}>
+                        🔥{p.streak}
+                      </span>
+                    )}
+                    {p.streak >= 2 && p.streak < 3 && (
+                      <span style={{ fontSize: '1.1vw', color: '#e8c96d', marginLeft: '.3vw' }}>🔥×{p.streak}</span>
+                    )}
                   </span>
-                  <span style={{ color: 'rgba(255,255,255,.35)' }}>{p.score}pt</span>
+                  <span style={{ color: '#fff', fontWeight: 700 }}>{p.score}pt</span>
                 </div>
               ))}
             </div>
