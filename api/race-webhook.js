@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 
   const norm = normalize(content)
 
-  // !join
+  // ─── !join ───────────────────────────────────────────
   if (norm === 'join' || content.trim() === '!join') {
     const { data: state } = await supabase
       .from('race_state').select('status').eq('session_id', SESSION_ID).single()
@@ -71,10 +71,73 @@ export default async function handler(req, res) {
     return res.status(200).json({ joined: true, username, color })
   }
 
-  // Réponse pendant un round
   const { data: state } = await supabase
     .from('race_state').select('*').eq('session_id', SESSION_ID).single()
-  if (!state || state.status !== 'playing') return res.status(200).end()
+  if (!state) return res.status(200).end()
+
+  // ─── DUEL EN COURS ───────────────────────────────────
+  if (state.status === 'duel') {
+    const isDuelPlayer = username === state.duel_challenger || username === state.duel_opponent
+    if (!isDuelPlayer) return res.status(200).json({ ignored: 'not a duel participant' })
+
+    const { data: player } = await supabase
+      .from('race_players').select('*')
+      .eq('session_id', SESSION_ID).eq('username', username).single()
+    if (!player) return res.status(200).end()
+    if (player.last_answered_round >= state.round_number) return res.status(200).end()
+
+    const correctAnswer = state.current_answer || ''
+    const isCorrect = norm === correctAnswer || norm.includes(correctAnswer)
+    if (!isCorrect) return res.status(200).end()
+
+    // Gagnant du duel
+    const loserUsername = username === state.duel_challenger ? state.duel_opponent : state.duel_challenger
+
+    const { data: loser } = await supabase
+      .from('race_players').select('*')
+      .eq('session_id', SESSION_ID).eq('username', loserUsername).single()
+
+    // Gagnant +3, Perdant -3
+    const winnerNewPos = Math.min((player.position || 0) + 3, 30)
+    const loserNewPos  = Math.max((loser?.position || 0) - 3, 0)
+
+    await supabase.from('race_players').update({
+      position: winnerNewPos, last_answered_round: state.round_number
+    }).eq('id', player.id)
+
+    if (loser) {
+      await supabase.from('race_players').update({
+        position: loserNewPos
+      }).eq('id', loser.id)
+    }
+
+    const duelResult = {
+      type: 'duel_result',
+      winner: username,
+      loser: loserUsername,
+      winnerPos: winnerNewPos,
+      loserPos: loserNewPos
+    }
+
+    await supabase.from('race_state').update({
+      status: 'duel_result',
+      case_effect: duelResult,
+      first_answerer: username,
+      updated_at: new Date().toISOString()
+    }).eq('session_id', SESSION_ID)
+
+    // Victoire si gagnant atteint case 30
+    if (winnerNewPos >= 30) {
+      await supabase.from('race_state').update({
+        status: 'finished', winner: username, updated_at: new Date().toISOString()
+      }).eq('session_id', SESSION_ID)
+    }
+
+    return res.status(200).json({ duelWon: true, winner: username, loser: loserUsername })
+  }
+
+  // ─── ROUND NORMAL ─────────────────────────────────────
+  if (state.status !== 'playing') return res.status(200).end()
 
   const { data: player } = await supabase
     .from('race_players').select('*')
@@ -99,6 +162,7 @@ export default async function handler(req, res) {
 
   const landedCase = BOARD[newPos] || { type: 'normal' }
   let caseEffect = null
+  let nextStatus = null
 
   if (landedCase.type === 'bonus') {
     newPos = Math.min(newPos + landedCase.value, 30)
@@ -122,16 +186,21 @@ export default async function handler(req, res) {
       .order('position', { ascending: false }).limit(1)
     const opponent = allPlayers?.[0]?.username || null
     caseEffect = { type: 'duel', challenger: username, opponent }
-    await supabase.from('race_state')
-      .update({ duel_challenger: username, duel_opponent: opponent })
-      .eq('session_id', SESSION_ID)
+    nextStatus = 'duel'
+    await supabase.from('race_state').update({
+      duel_challenger: username, duel_opponent: opponent
+    }).eq('session_id', SESSION_ID)
   }
 
   await supabase.from('race_players').update({
     position: newPos, last_answered_round: state.round_number, is_blocked: false
   }).eq('id', player.id)
 
-  const stateUpdate = { updated_at: new Date().toISOString(), case_effect: caseEffect }
+  const stateUpdate = {
+    updated_at: new Date().toISOString(),
+    case_effect: caseEffect,
+    ...(nextStatus && { status: nextStatus }),
+  }
   if (isFirst) stateUpdate.first_answerer = username
   await supabase.from('race_state').update(stateUpdate).eq('session_id', SESSION_ID)
 

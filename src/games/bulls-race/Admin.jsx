@@ -166,6 +166,31 @@ export default function BullsRaceAdmin() {
     await supabase.from('race_state').update({ status: 'finished', winner: leader?.username || null, updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
   }
 
+  async function handleStartDuel() {
+    if (loading) return
+    const nextQ = questions.find(q => !q.used)
+    if (!nextQ) return alert('Plus de questions disponibles !')
+    setLoading(true)
+    const timerEnd = new Date(Date.now() + 30 * 1000).toISOString()
+    const newState = {
+      status: 'duel',
+      current_question: nextQ.question,
+      current_answer: nextQ.answer,
+      current_category: nextQ.category,
+      round_number: (state.round_number || 0) + 1,
+      first_answerer: null,
+      case_effect: null,
+      timer_end: timerEnd,
+      timer_duration: 30,
+      updated_at: new Date().toISOString()
+    }
+    await supabase.from('race_questions').update({ used: true }).eq('id', nextQ.id)
+    await supabase.from('race_state').update(newState).eq('session_id', SESSION_ID)
+    setState(prev => ({ ...prev, ...newState }))
+    loadQuestions()
+    setLoading(false)
+  }
+
   async function handleShowRules() {
     setPreviousStatus(state.status)
     await supabase.from('race_state').update({ status: 'rules', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
@@ -201,8 +226,8 @@ export default function BullsRaceAdmin() {
     await supabase.from('race_players').delete().eq('id', playerId)
   }
 
-  const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', finished: '#c8a96e', rules: '#b388ff' }
-  const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', finished: '🏆 TERMINÉ', rules: '🔊 RÈGLES' }
+  const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', duel_result: '#ff8c00', finished: '#c8a96e', rules: '#b388ff' }
+  const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', duel_result: '⚔️ RÉSULTAT DUEL', finished: '🏆 TERMINÉ', rules: '🔊 RÈGLES' }
   const unusedCount = questions.filter(q => !q.used).length
 
   return (
@@ -309,6 +334,29 @@ export default function BullsRaceAdmin() {
                     <>
                       <button className="btn btn-red" disabled={unusedCount === 0} onClick={handleStartRound}>▶ QUESTION SUIVANTE</button>
                       <button className="btn btn-ghost" onClick={handleIdle}>⏸ PAUSE</button>
+                      <button className="btn btn-gold" onClick={handleEndGame}>🏆 TERMINER LA PARTIE</button>
+                    </>
+                  )}
+                  {state.status === 'duel' && (
+                    <>
+                      <div style={{ padding: '10px 12px', background: 'rgba(255,45,120,.06)', border: '1px solid rgba(255,45,120,.3)', borderRadius: 8, textAlign: 'center' }}>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 6 }}>⚔️ DUEL EN COURS</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#ff2d78' }}>@{state.duel_challenger}</div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', margin: '4px 0' }}>VS</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#7b2fff' }}>@{state.duel_opponent || '???'}</div>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', marginTop: 6 }}>Seuls ces joueurs peuvent répondre</div>
+                      </div>
+                      <button className="btn btn-cyan" onClick={handleReveal}>👁 RÉVÉLER LA RÉPONSE</button>
+                    </>
+                  )}
+                  {state.status === 'duel_result' && (
+                    <>
+                      <div style={{ padding: '10px 12px', background: 'rgba(255,140,0,.06)', border: '1px solid rgba(255,140,0,.3)', borderRadius: 8, textAlign: 'center' }}>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', marginBottom: 6 }}>🏆 RÉSULTAT DU DUEL</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#ffd700' }}>🥇 @{state.first_answerer} +3 cases</div>
+                        <div style={{ fontSize: 12, color: '#ff3860', marginTop: 4 }}>💀 adversaire -3 cases</div>
+                      </div>
+                      <button className="btn btn-red" disabled={unusedCount === 0} onClick={handleStartRound}>▶ QUESTION SUIVANTE</button>
                       <button className="btn btn-gold" onClick={handleEndGame}>🏆 TERMINER LA PARTIE</button>
                     </>
                   )}
