@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const SESSION_ID = 'bulls-race'
@@ -32,7 +32,7 @@ export default function BullsRaceAdmin() {
   const [loading,    setLoading]    = useState(false)
   const [generating, setGenerating] = useState(false)
   const [timer,      setTimer]      = useState(30)
-  const [timerActive, setTimerActive] = useState(false)
+  const timerRef = useRef(null)
   const [log,        setLog]        = useState([])
 
   useEffect(() => {
@@ -49,13 +49,18 @@ export default function BullsRaceAdmin() {
   }, [])
 
   useEffect(() => {
-    let interval
-    if (timerActive && timer > 0) {
-      interval = setInterval(() => setTimer(t => t - 1), 1000)
+    clearInterval(timerRef.current)
+    if (state.status === 'playing' && state.timer_end) {
+      timerRef.current = setInterval(() => {
+        const remaining = Math.max(0, Math.round((new Date(state.timer_end) - Date.now()) / 1000))
+        setTimer(remaining)
+        if (remaining <= 0) { clearInterval(timerRef.current); handleReveal() }
+      }, 500)
     }
-    if (timer === 0) { setTimerActive(false); handleReveal() }
-    return () => clearInterval(interval)
-  }, [timerActive, timer])
+    if (state.status === 'idle') setTimer(30)
+    if (state.status === 'revealed') clearInterval(timerRef.current)
+    return () => clearInterval(timerRef.current)
+  }, [state.status, state.timer_end])
 
   function addLog(newState) {
     if (newState.first_answerer) {
@@ -119,8 +124,7 @@ export default function BullsRaceAdmin() {
     const nextQ = questions.find(q => !q.used)
     if (!nextQ) return alert('Plus de questions disponibles ! Générez-en d\'autres.')
     setLoading(true)
-    setTimer(30)
-    setTimerActive(true)
+    const timerEnd = new Date(Date.now() + 30 * 1000).toISOString()
     await supabase.from('race_questions').update({ used: true }).eq('id', nextQ.id)
     await supabase.from('race_state').update({
       status: 'playing',
@@ -132,6 +136,8 @@ export default function BullsRaceAdmin() {
       duel_challenger: null,
       duel_opponent: null,
       case_effect: null,
+      timer_end: timerEnd,
+      timer_duration: 30,
       updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
     loadQuestions()
@@ -139,7 +145,7 @@ export default function BullsRaceAdmin() {
   }
 
   async function handleReveal() {
-    setTimerActive(false)
+    clearInterval(timerRef.current)
     if (state.status === 'revealed') return
     await supabase.from('race_state').update({ status: 'revealed', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
   }
