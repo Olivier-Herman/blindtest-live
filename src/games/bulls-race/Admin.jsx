@@ -117,6 +117,7 @@ export default function BullsRaceAdmin() {
 
   async function handleOpenRegistration() {
     await supabase.from('race_state').update({ status: 'waiting', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
+    await loadState()
   }
 
   async function handleStartRound() {
@@ -140,6 +141,7 @@ export default function BullsRaceAdmin() {
       timer_duration: 30,
       updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
+    await loadState()
     loadQuestions()
     setLoading(false)
   }
@@ -148,6 +150,7 @@ export default function BullsRaceAdmin() {
     clearInterval(timerRef.current)
     if (state.status === 'revealed') return
     await supabase.from('race_state').update({ status: 'revealed', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
+    await loadState()
   }
 
   async function handleIdle() {
