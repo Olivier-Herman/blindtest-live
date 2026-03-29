@@ -223,10 +223,10 @@ export default function BullsRaceOverlay() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2vw', maxWidth: '90vw', width: '100%' }}>
             {[
               { icon: '🎯', title: 'OBJECTIF', text: 'Soyez le premier à atteindre la case 30 en répondant correctement aux questions !' },
-              { icon: '🥇', title: '1ER À RÉPONDRE', text: 'Le premier qui trouve la bonne réponse avance de 3 cases. Les suivants avancent d\'1 case.' },
+              { icon: '🥇', title: '1ER À RÉPONDRE', text: 'Le premier qui trouve la bonne réponse avance de 3 cases. Les suivants avancent d une case.' },
               { icon: '⭐', title: 'CASE BONUS', text: 'Vous avancez de 2 à 3 cases supplémentaires. La chance est avec vous !' },
               { icon: '💀', title: 'CASE PIÈGE', text: 'Vous reculez de 2 à 3 cases. Attention où vous mettez les pieds !' },
-              { icon: '⚔️', title: 'CASE DUEL', text: 'Vous affrontez le joueur en tête ! Le prochain à répondre correctement gagne l'affrontement.' },
+              { icon: '⚔️', title: 'CASE DUEL', text: 'Vous affrontez le joueur en tete ! Le prochain a repondre correctement gagne le duel.' },
               { icon: '🃏', title: 'CASE JOKER', text: 'Vous bloquez le joueur en tête pendant un round. Il ne peut pas répondre !' },
             ].map((r, i) => (
               <div key={i} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '1vw', padding: '1.5vw 2vw', display: 'flex', gap: '1.2vw', alignItems: 'flex-start', animation: `fadeIn .5s ease ${i * .15}s both` }}>
