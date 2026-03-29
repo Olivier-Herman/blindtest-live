@@ -203,11 +203,11 @@ export default function BullsRaceOverlay() {
 
           {/* Left panel — Classement */}
           <div style={{ position: 'absolute', left: 0, top: `${BOARD_TOP}vh`, width: `${BOARD_LEFT}vw`, bottom: '13vh', zIndex: 20, padding: '1.5vw 1.2vw', borderRight: '1px solid rgba(255,255,255,.05)', background: 'rgba(0,0,0,.3)' }}>
-            <div style={{ fontSize: '.9vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginBottom: '1.5vh', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', marginBottom: '1.5vh', textAlign: 'center', fontWeight: 900 }}>
               🏆 CLASSEMENT
             </div>
             {players.length === 0 ? (
-              <div style={{ textAlign: 'center', color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono', fontSize: '.85vw', marginTop: '3vh', lineHeight: 2 }}>
+              <div style={{ textAlign: 'center', color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono', fontSize: '1vw', marginTop: '3vh', lineHeight: 2 }}>
                 En attente<br />de joueurs...
               </div>
             ) : players.map((p, i) => (
@@ -239,15 +239,19 @@ export default function BullsRaceOverlay() {
             const border = CASE_BORDER[c.type] || CASE_BORDER.normal
             const icon   = CASE_ICON[c.type]   || ''
             const isFinish = c.type === 'finish'
+            const typeLabel = { bonus: 'BONUS', trap: 'PIÈGE', duel: 'DUEL', joker: 'JOKER', finish: 'ARRIVÉE' }
+            const typeColor = { bonus: '#ffd700', trap: '#ff6060', duel: '#b388ff', joker: '#00f5ff', finish: '#c8a96e' }
             return (
-              <div key={c.id} style={{ position: 'absolute', left, top, width: `${CELL_W}vw`, height: `${CELL_H}vh`, background: bg, border: `1px solid ${border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, transition: 'background .3s' }}>
-                <div style={{ fontSize: isFinish ? '2.5vw' : '1.6vw', lineHeight: 1 }}>{icon}</div>
-                <div style={{ fontSize: '.65vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', marginTop: '.2vh' }}>{c.id}</div>
-                {c.type === 'bonus' && (
-                  <div style={{ fontSize: '.6vw', color: '#ffd700', fontFamily: 'Share Tech Mono' }}>+{c.value}</div>
-                )}
-                {c.type === 'trap' && (
-                  <div style={{ fontSize: '.6vw', color: '#ff6060', fontFamily: 'Share Tech Mono' }}>{c.value}</div>
+              <div key={c.id} style={{ position: 'absolute', left, top, width: `${CELL_W}vw`, height: `${CELL_H}vh`, background: bg, border: `1px solid ${border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, transition: 'background .3s', gap: '.3vh' }}>
+                {/* Numéro de case */}
+                <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', fontWeight: 700, lineHeight: 1 }}>{c.id}</div>
+                {/* Icône grande */}
+                <div style={{ fontSize: isFinish ? '3.5vw' : c.type !== 'normal' ? '3vw' : '1vw', lineHeight: 1 }}>{icon}</div>
+                {/* Label type */}
+                {c.type !== 'normal' && (
+                  <div style={{ fontSize: '.85vw', color: typeColor[c.type] || '#fff', fontFamily: 'Share Tech Mono', fontWeight: 900, letterSpacing: '.05em', lineHeight: 1 }}>
+                    {c.type === 'bonus' ? `+${c.value}` : c.type === 'trap' ? `${c.value}` : typeLabel[c.type]}
+                  </div>
                 )}
               </div>
             )
@@ -270,13 +274,13 @@ export default function BullsRaceOverlay() {
             const offsetX = (myIndexHere - (playersHere.length - 1) / 2) * 1.5
             return (
               <div key={p.id} className="pawn" style={{
-                width: '2.2vw', height: '2.2vw',
+                width: '3vw', height: '3vw',
                 background: `radial-gradient(circle at 35% 35%, ${p.color}ee, ${p.color}88)`,
                 border: `2px solid ${p.color}`,
                 boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}55`,
-                left: `calc(${cx}vw - 1.1vw + ${offsetX}vw)`,
-                top: `calc(${cy}vh - 1.1vw)`,
-                fontSize: '.7vw',
+                left: `calc(${cx}vw - 1.5vw + ${offsetX}vw)`,
+                top: `calc(${cy}vh - 1.5vw)`,
+                fontSize: '1.1vw',
                 color: '#000',
                 fontWeight: 900,
                 zIndex: 40 + idx,
@@ -289,7 +293,7 @@ export default function BullsRaceOverlay() {
           {/* Start marker */}
           <div style={{ position: 'absolute', left: `${BOARD_LEFT - 12}vw`, bottom: '14vh', width: '10vw', textAlign: 'center', zIndex: 15 }}>
             <div style={{ fontSize: '1.5vw', marginBottom: '.3vh' }}>🚀</div>
-            <div style={{ fontSize: '.7vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.2em' }}>DÉPART</div>
+            <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.2em', fontWeight: 900 }}>DÉPART</div>
           </div>
 
           {/* Bottom bar — Question */}
@@ -299,7 +303,7 @@ export default function BullsRaceOverlay() {
                 {/* Timer */}
                 <div style={{ flexShrink: 0, textAlign: 'center', marginRight: '2vw', minWidth: '6vw' }}>
                   <div style={{ fontSize: '4vw', fontWeight: 900, color: timer <= 5 ? '#ff3860' : '#00f5ff', lineHeight: 1, animation: timer <= 5 ? 'pulse .5s infinite' : 'none' }}>{timer}</div>
-                  <div style={{ fontSize: '.7vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>sec</div>
+                  <div style={{ fontSize: '.9vw', color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono' }}>SEC</div>
                 </div>
                 <div style={{ width: 1, height: '60%', background: 'rgba(255,255,255,.1)', marginRight: '2vw' }} />
                 {/* Category + question */}
@@ -315,9 +319,9 @@ export default function BullsRaceOverlay() {
                 </div>
                 {/* Points info */}
                 <div style={{ flexShrink: 0, textAlign: 'center', marginLeft: '2vw' }}>
-                  <div style={{ fontSize: '.7vw', color: 'rgba(255,255,255,.25)', fontFamily: 'Share Tech Mono', marginBottom: '.4vh' }}>1ER CORRECT</div>
+                  <div style={{ fontSize: '.9vw', color: 'rgba(255,255,255,.7)', fontFamily: 'Share Tech Mono', marginBottom: '.4vh' }}>1ER CORRECT</div>
                   <div style={{ fontSize: '2.5vw', fontWeight: 900, color: '#ffd700' }}>+3</div>
-                  <div style={{ fontSize: '.6vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono' }}>cases</div>
+                  <div style={{ fontSize: '.8vw', color: 'rgba(255,255,255,.6)', fontFamily: 'Share Tech Mono' }}>CASES</div>
                   {state.first_answerer && (
                     <div style={{ marginTop: '.4vh', fontSize: '.7vw', color: '#ffd700', fontFamily: 'Share Tech Mono' }}>
                       🥇 @{state.first_answerer}
@@ -328,7 +332,7 @@ export default function BullsRaceOverlay() {
             )}
             {isRevealed && (
               <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '2vw', animation: 'fadeIn .5s ease' }}>
-                <div style={{ fontSize: '1.2vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.4em' }}>✦ LA RÉPONSE ÉTAIT ✦</div>
+                <div style={{ fontSize: '1.4vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.4em', fontWeight: 700 }}>✦ LA RÉPONSE ÉTAIT ✦</div>
                 <div style={{ fontSize: '3vw', fontWeight: 900, color: '#00ff88', textShadow: '0 0 20px rgba(0,255,136,.4)' }}>
                   {state.current_answer}
                 </div>
@@ -340,7 +344,7 @@ export default function BullsRaceOverlay() {
               </div>
             )}
             {(state.status === 'idle' || isWaiting) && (
-              <div style={{ flex: 1, textAlign: 'center', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: '1.1vw', letterSpacing: '.4em' }}>
+              <div style={{ flex: 1, textAlign: 'center', color: '#fff', fontFamily: 'Share Tech Mono', fontSize: '1.4vw', letterSpacing: '.3em', fontWeight: 700 }}>
                 {isWaiting ? '👥 INSCRIPTIONS OUVERTES — TAPEZ !join' : 'EN ATTENTE DU PROCHAIN ROUND...'}
               </div>
             )}
