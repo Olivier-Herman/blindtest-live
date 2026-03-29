@@ -9,7 +9,20 @@ export default function LiveOverlay() {
         body { background: #050510 !important; }
         @keyframes rotate      { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes rotateCCW   { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
-        @keyframes shimmerPink { 0%,100%{text-shadow:0 0 30px rgba(255,45,120,.6),0 0 60px rgba(255,45,120,.2)} 50%{text-shadow:0 0 60px rgba(255,45,120,.9),0 0 120px rgba(255,45,120,.4)} }
+        @keyframes shimmerPink {
+          0%  { text-shadow: 0 0 20px rgba(255,100,0,.6), 0 0 40px rgba(255,45,0,.3), 0 0 80px rgba(255,45,120,.2); color: #fff; }
+          25% { text-shadow: 0 0 30px rgba(255,150,0,.8), 0 0 60px rgba(255,80,0,.4), 0 0 100px rgba(255,45,0,.2); color: #fff5f0; }
+          50% { text-shadow: 0 0 40px rgba(255,45,120,.9), 0 0 80px rgba(255,100,0,.5), 0 0 120px rgba(255,45,0,.3); color: #ffffff; }
+          75% { text-shadow: 0 0 25px rgba(255,120,0,.7), 0 0 50px rgba(255,60,0,.35), 0 0 90px rgba(255,45,120,.2); color: #fff8f5; }
+          100%{ text-shadow: 0 0 20px rgba(255,100,0,.6), 0 0 40px rgba(255,45,0,.3), 0 0 80px rgba(255,45,120,.2); color: #fff; }
+        }
+        @keyframes flicker {
+          0%,100%{ transform: scaleX(1) translateY(0); }
+          20%    { transform: scaleX(1.005) translateY(-1px); }
+          40%    { transform: scaleX(.998) translateY(0px); }
+          60%    { transform: scaleX(1.003) translateY(-2px); }
+          80%    { transform: scaleX(.997) translateY(0px); }
+        }
         @keyframes shimmerGold { 0%,100%{text-shadow:0 0 20px rgba(200,169,110,.4)} 50%{text-shadow:0 0 40px rgba(200,169,110,.8),0 0 80px rgba(200,169,110,.3)} }
         @keyframes pulse       { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
         @keyframes borderGlow  { 0%,100%{box-shadow:0 0 20px rgba(255,45,120,.35),inset 0 0 20px rgba(255,45,120,.08)} 50%{box-shadow:0 0 50px rgba(255,45,120,.7),inset 0 0 30px rgba(255,45,120,.15)} }
@@ -54,7 +67,7 @@ export default function LiveOverlay() {
         <div style={{ fontFamily: 'Share Tech Mono', fontSize: '1.1vw', color: 'rgba(255,255,255,.25)', letterSpacing: '.8em', marginBottom: '.8vh', animation: 'fadeSlide .8s ease' }}>
           BULLS AGENCY LIVE
         </div>
-        <div style={{ fontSize: '6.5vw', fontWeight: 900, color: '#ffffff', letterSpacing: '.08em', lineHeight: 1, animation: 'shimmerPink 2.5s ease-in-out infinite' }}>
+        <div style={{ fontSize: '6.5vw', fontWeight: 900, color: '#ffffff', letterSpacing: '.08em', lineHeight: 1, animation: 'shimmerPink 3s ease-in-out infinite, flicker 4s ease-in-out infinite' }}>
           @olimobi82
         </div>
         <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.95vw', color: 'rgba(255,255,255,.2)', letterSpacing: '.6em', marginTop: '1vh' }}>
