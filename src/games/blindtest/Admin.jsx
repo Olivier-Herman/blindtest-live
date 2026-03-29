@@ -1,12 +1,7 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { useState, useEffect, useRef } from 'react'
 import { supabase, SESSION_ID } from '../../lib/supabase'
 
 export default function Admin() {
-  const adminSupabase = useMemo(() => createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
-  ), [])
   const [gameState, setGameState]     = useState({ status: 'idle', song_title: '', song_artist: '', winner_name: '', round_number: 0, songs_remaining: 0 })
   const [playlist,  setPlaylist]      = useState([])
   const [scores,    setScores]        = useState([])
@@ -129,8 +124,8 @@ export default function Admin() {
 
   async function handleResetScores() {
     if (!confirm('Réinitialiser tout le classement et les commentaires ?')) return
-    await adminSupabase.from('scores').delete().eq('session_id', SESSION_ID)
-    await adminSupabase.from('comments').delete().eq('session_id', SESSION_ID)
+    await supabase.from('scores').delete().eq('session_id', SESSION_ID)
+    await supabase.from('comments').delete().eq('session_id', SESSION_ID)
     setScores([]); setComments([])
   }
 
