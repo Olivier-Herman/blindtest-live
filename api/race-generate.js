@@ -15,6 +15,18 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
+    // Récupère toutes les questions déjà en base (utilisées ou non) pour les exclure
+    const { data: existing } = await supabase
+      .from('race_questions')
+      .select('question')
+      .eq('session_id', SESSION_ID)
+
+    const existingList = (existing || []).map(q => q.question).slice(0, 200) // max 200 pour le prompt
+
+    const excludeBlock = existingList.length > 0
+      ? `\n\nQUESTIONS DÉJÀ UTILISÉES À NE PAS RÉPÉTER :\n${existingList.map((q, i) => `${i+1}. ${q}`).join('\n')}`
+      : ''
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -38,6 +50,7 @@ Règles importantes :
 - Niveau : grand public, ni trop facile ni trop difficile
 - Pas de questions sur des dates précises
 - Pas de questions trop spécialisées
+- IMPORTANT : Ne répète AUCUNE des questions déjà utilisées listées ci-dessous${excludeBlock}
 
 Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou après :
 [
@@ -49,9 +62,6 @@ Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou a
     })
 
     const data = await response.json()
-    console.log('[race-generate] status:', response.status)
-    console.log('[race-generate] data:', JSON.stringify(data).slice(0, 500))
-
     if (!data.content?.[0]?.text) {
       throw new Error(`Réponse Claude invalide: ${JSON.stringify(data).slice(0, 300)}`)
     }
@@ -61,11 +71,12 @@ Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou a
 
     let questions
     try { questions = JSON.parse(text) }
-    catch (e) { throw new Error(`JSON invalide: ${e.message} — texte: ${text.slice(0, 200)}`) }
+    catch (e) { throw new Error(`JSON invalide: ${e.message}`) }
 
     if (!Array.isArray(questions) || questions.length === 0)
       throw new Error('Aucune question générée')
 
+    // Supprime uniquement les questions NON utilisées (garde l'historique des utilisées)
     await supabase.from('race_questions').delete().eq('session_id', SESSION_ID).eq('used', false)
 
     const rows = questions.map((q, i) => ({
