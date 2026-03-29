@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js')
+import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -7,7 +7,7 @@ const supabase = createClient(
 
 const SESSION_ID = 'bulls-race'
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -42,8 +42,7 @@ Règles importantes :
 Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou après :
 [
   {"question": "Quelle est la capitale de l'Espagne ?", "answer": "madrid", "category": "géographie"},
-  {"question": "Quel fruit est le symbole de New York ?", "answer": "pomme", "category": "culture"},
-  ...
+  {"question": "Quel fruit est le symbole de New York ?", "answer": "pomme", "category": "culture"}
 ]`
         }]
       })
@@ -56,20 +55,14 @@ Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou a
     text = text.replace(/```json|```/g, '').trim()
 
     let questions
-    try {
-      questions = JSON.parse(text)
-    } catch {
-      throw new Error('JSON invalide dans la réponse Claude')
-    }
+    try { questions = JSON.parse(text) }
+    catch { throw new Error('JSON invalide dans la réponse Claude') }
 
-    if (!Array.isArray(questions) || questions.length === 0) {
+    if (!Array.isArray(questions) || questions.length === 0)
       throw new Error('Aucune question générée')
-    }
 
-    // Supprime les questions non utilisées existantes
     await supabase.from('race_questions').delete().eq('session_id', SESSION_ID).eq('used', false)
 
-    // Normalise et insère les nouvelles questions
     const rows = questions.map((q, i) => ({
       session_id: SESSION_ID,
       question: q.question,
@@ -82,7 +75,6 @@ Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou a
     })).filter(q => q.question && q.answer)
 
     await supabase.from('race_questions').insert(rows)
-
     return res.status(200).json({ success: true, count: rows.length })
   } catch (err) {
     console.error('[race-generate]', err)
