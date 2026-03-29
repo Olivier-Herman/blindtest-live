@@ -203,7 +203,7 @@ export default function BullsRaceAdmin() {
 
   async function handleResetAllQuestions() {
     if (!confirm('Remettre toutes les questions en disponible ?')) return
-    await supabase.from('race_questions').update({ used: false }).eq('session_id', SESSION_ID)
+    await supabase.from('race_questions').update({ used: false }).eq('session_id', SESSION_ID).eq('used', true)
     loadQuestions()
   }
 
