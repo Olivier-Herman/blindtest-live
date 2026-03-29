@@ -244,7 +244,7 @@ export default function BullsRaceOverlay() {
 
           {/* Titre */}
           <div style={{ textAlign: 'center', marginBottom: '3vh' }}>
-            <div style={{ fontSize: '2vw', color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '1vh' }}>🎲 BULLS RACE</div>
+            <div style={{ fontSize: '2vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '1vh', fontWeight: 700 }}>🎲 BULLS RACE</div>
             <div style={{ fontSize: '7vw', fontWeight: 900, color: '#ff2d78', letterSpacing: '.15em', textShadow: '0 0 5vw rgba(255,45,120,.8)', lineHeight: 1 }}>INSCRIPTIONS</div>
           </div>
 
@@ -323,12 +323,12 @@ export default function BullsRaceOverlay() {
         <>
           {/* Header */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: `${BOARD_TOP}vh`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2vw', zIndex: 20, borderBottom: '1px solid rgba(255,255,255,.05)', background: 'rgba(0,0,0,.4)' }}>
-            <div style={{ fontSize: '3vw', fontWeight: 900, letterSpacing: '.35em', color: '#ff2d78', textShadow: '0 0 20px rgba(255,45,120,.5)' }}>
+            <div style={{ fontSize: '3vw', fontWeight: 900, letterSpacing: '.35em', color: '#ff2d78', textShadow: '0 0 20px rgba(255,45,120,.9), 0 0 40px rgba(255,45,120,.5)' }}>
               🎲 BULLS RACE
             </div>
             <div style={{ display: 'flex', gap: '2vw', alignItems: 'center' }}>
               {state.round_number > 0 && (
-                <div style={{ fontSize: '1.1vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
+                <div style={{ fontSize: '1.1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
                   ROUND {state.round_number}
                 </div>
               )}
@@ -338,7 +338,7 @@ export default function BullsRaceOverlay() {
                 </div>
               )}
               {isPlaying && (
-                <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
+                <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
                   <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#ff2d78', marginRight: 8, animation: 'pulse 1s infinite' }} />
                   EN DIRECT
                 </div>
@@ -362,7 +362,7 @@ export default function BullsRaceOverlay() {
                   <div style={{ fontSize: '1.4vw', fontWeight: 700, color: i===0?'#ffd700':'#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':`#${i+1} `}@{p.username}
                   </div>
-                  <div style={{ fontSize: '1vw', color: p.color, fontFamily: 'Share Tech Mono', opacity: .8 }}>
+                  <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono' }}>
                     Case {p.position}/30
                     {p.is_blocked && <span style={{ color: '#ff2d78', marginLeft: '.4vw' }}>🔒</span>}
                   </div>
@@ -389,12 +389,12 @@ export default function BullsRaceOverlay() {
             return (
               <div key={c.id} style={{ position: 'absolute', left, top, width: `${CELL_W}vw`, height: `${CELL_H}vh`, background: bg, border: `1px solid ${border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, transition: 'background .3s', gap: '.3vh' }}>
                 {/* Numéro de case */}
-                <div style={{ fontSize: '1vw', color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', fontWeight: 700, lineHeight: 1 }}>{c.id}</div>
+                <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', fontWeight: 700, lineHeight: 1 }}>{c.id}</div>
                 {/* Icône grande */}
                 <div style={{ fontSize: isFinish ? '3.5vw' : c.type !== 'normal' ? '3vw' : '1vw', lineHeight: 1 }}>{icon}</div>
                 {/* Label type */}
                 {c.type !== 'normal' && (
-                  <div style={{ fontSize: '.85vw', color: typeColor[c.type] || '#fff', fontFamily: 'Share Tech Mono', fontWeight: 900, letterSpacing: '.05em', lineHeight: 1 }}>
+                  <div style={{ fontSize: '1vw', color: '#fff', fontFamily: 'Share Tech Mono', fontWeight: 900, letterSpacing: '.05em', lineHeight: 1 }}>
                     {c.type === 'bonus' ? `+${c.value}` : c.type === 'trap' ? `${c.value}` : typeLabel[c.type]}
                   </div>
                 )}
@@ -448,7 +448,7 @@ export default function BullsRaceOverlay() {
                 {/* Timer */}
                 <div style={{ flexShrink: 0, textAlign: 'center', marginRight: '2vw', minWidth: '6vw' }}>
                   <div style={{ fontSize: '5.5vw', fontWeight: 900, color: timer <= 5 ? '#ff3860' : '#00f5ff', lineHeight: 1, animation: timer <= 5 ? 'pulse .5s infinite' : 'none' }}>{timer}</div>
-                  <div style={{ fontSize: '.9vw', color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono' }}>SEC</div>
+                  <div style={{ fontSize: '.9vw', color: '#fff', fontFamily: 'Share Tech Mono' }}>SEC</div>
                 </div>
                 <div style={{ width: 1, height: '60%', background: 'rgba(255,255,255,.1)', marginRight: '2vw' }} />
                 {/* Category + question */}
@@ -464,11 +464,11 @@ export default function BullsRaceOverlay() {
                 </div>
                 {/* Points info */}
                 <div style={{ flexShrink: 0, textAlign: 'center', marginLeft: '2vw' }}>
-                  <div style={{ fontSize: '.9vw', color: 'rgba(255,255,255,.7)', fontFamily: 'Share Tech Mono', marginBottom: '.4vh' }}>1ER CORRECT</div>
+                  <div style={{ fontSize: '.9vw', color: '#fff', fontFamily: 'Share Tech Mono', marginBottom: '.4vh' }}>1ER CORRECT</div>
                   <div style={{ fontSize: '2.5vw', fontWeight: 900, color: '#ffd700' }}>+3</div>
-                  <div style={{ fontSize: '.8vw', color: 'rgba(255,255,255,.6)', fontFamily: 'Share Tech Mono' }}>CASES</div>
+                  <div style={{ fontSize: '.8vw', color: '#fff', fontFamily: 'Share Tech Mono' }}>CASES</div>
                   {state.first_answerer && (
-                    <div style={{ marginTop: '.4vh', fontSize: '.7vw', color: '#ffd700', fontFamily: 'Share Tech Mono' }}>
+                    <div style={{ marginTop: '.4vh', fontSize: '.9vw', color: '#ffd700', fontFamily: 'Share Tech Mono', fontWeight: 900 }}>
                       🥇 @{state.first_answerer}
                     </div>
                   )}
