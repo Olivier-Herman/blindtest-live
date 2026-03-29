@@ -25,6 +25,7 @@ const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', 
 const CASE_COLORS = { normal: 'rgba(255,255,255,.08)', bonus: 'rgba(255,215,0,.2)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.2)', start: 'rgba(255,255,255,.05)', finish: 'rgba(200,169,110,.3)' }
 
 export default function BullsRaceAdmin() {
+  const [previousStatus, setPreviousStatus] = useState('idle')
   const [state,      setState]      = useState({ status: 'idle', current_question: '', current_answer: '', current_category: '', round_number: 0, first_answerer: null, duel_challenger: null, duel_opponent: null, case_effect: null, winner: null })
   const [players,    setPlayers]    = useState([])
   const [questions,  setQuestions]  = useState([])
@@ -166,12 +167,13 @@ export default function BullsRaceAdmin() {
   }
 
   async function handleShowRules() {
+    setPreviousStatus(state.status)
     await supabase.from('race_state').update({ status: 'rules', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
     await loadState()
   }
 
   async function handleCloseRules() {
-    await supabase.from('race_state').update({ status: 'idle', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
+    await supabase.from('race_state').update({ status: previousStatus, updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
     await loadState()
   }
 
