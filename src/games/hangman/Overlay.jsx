@@ -100,7 +100,7 @@ export default function HangmanOverlay() {
             ))}
             {Array.from({ length: Math.max(0, 10 - players.length) }).map((_, i) => (
               <div key={`e${i}`} style={{ background: 'rgba(255,255,255,.03)', border: '2px dashed rgba(255,255,255,.12)', borderRadius: '1.2vw', minHeight: '10vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ fontSize: '2vw', color: 'rgba(255,255,255,.1)' }}>?</div>
+                <div style={{ fontSize: '2vw', color: '#fff' }}>?</div>
               </div>
             ))}
           </div>
