@@ -10,7 +10,7 @@ const BOARD = [
   { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
   { id: 7,  type: 'duel'   }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
   { id: 10, type: 'bonus',  value: 2  }, { id: 11, type: 'normal' },
-  { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'wheel'  },
   { id: 14, type: 'joker'  }, { id: 15, type: 'normal' },
   { id: 16, type: 'bonus',  value: 3  }, { id: 17, type: 'normal' }, { id: 18, type: 'normal' },
   { id: 19, type: 'trap',   value: -2 }, { id: 20, type: 'normal' },
