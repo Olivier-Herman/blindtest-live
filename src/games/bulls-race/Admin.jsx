@@ -101,7 +101,14 @@ export default function BullsRaceAdmin() {
   }
   async function loadQuestions() {
     const { data } = await supabase.from('race_questions').select('*').eq('session_id', SESSION_ID).order('position')
-    setQuestions(data || [])
+    if (data) {
+      // Mélange les non-utilisées, garde les utilisées à la fin
+      const unused = data.filter(q => !q.used).sort(() => Math.random() - 0.5)
+      const used   = data.filter(q => q.used)
+      setQuestions([...unused, ...used])
+    } else {
+      setQuestions([])
+    }
   }
 
   async function handleGenerate() {
@@ -126,6 +133,14 @@ export default function BullsRaceAdmin() {
     const nextQ = questions.find(q => !q.used)
     if (!nextQ) return alert('Plus de questions disponibles ! Générez-en d\'autres.')
     setLoading(true)
+    // Régénération automatique si moins de 5 questions restantes
+    if (questions.filter(q => !q.used).length <= 5) {
+      try {
+        const res = await fetch('https://blindtest-live.vercel.app/api/race-generate', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+        const data = await res.json()
+        if (data.success) loadQuestions()
+      } catch(e) { console.error('auto-generate error', e) }
+    }
     const timerEnd = new Date(Date.now() + 30 * 1000).toISOString()
     const newRound = (state.round_number || 0) + 1
     const newState = {
