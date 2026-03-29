@@ -7,6 +7,8 @@ const BlindTestAdmin   = lazy(() => import('./games/blindtest/Admin'))
 const BlindTestOverlay = lazy(() => import('./games/blindtest/Overlay'))
 const BullsRaceAdmin   = lazy(() => import('./games/bulls-race/Admin'))
 const BullsRaceOverlay = lazy(() => import('./games/bulls-race/Overlay'))
+const HangmanAdmin     = lazy(() => import('./games/hangman/Admin'))
+const HangmanOverlay   = lazy(() => import('./games/hangman/Overlay'))
 
 const Loader = () => (
   <div style={{ background: '#07070f', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.2)', fontFamily: 'monospace', letterSpacing: '0.3em' }}>
@@ -25,6 +27,8 @@ export default function App() {
           <Route path="/bulls-race"         element={<BullsRaceAdmin />} />
           <Route path="/bulls-race/overlay" element={<BullsRaceOverlay />} />
           <Route path="/live-overlay"       element={<LiveOverlay />} />
+          <Route path="/hangman"            element={<HangmanAdmin />} />
+          <Route path="/hangman/overlay"    element={<HangmanOverlay />} />
           <Route path="*"                   element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

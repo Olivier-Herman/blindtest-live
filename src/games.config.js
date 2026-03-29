@@ -20,6 +20,16 @@ export const GAMES = [
     overlayPath: '/bulls-race/overlay',
   },
   {
+    id: 'hangman',
+    name: 'Le Pendu',
+    emoji: '🎯',
+    description: 'Devinez le mot lettre par lettre avant que le pendu soit dessiné !',
+    status: 'available',
+    color: '#00f5ff',
+    adminPath: '/hangman',
+    overlayPath: '/hangman/overlay',
+  },
+  {
     id: 'coming-soon-1',
     name: 'Roue Fortune',
     emoji: '🎰',
