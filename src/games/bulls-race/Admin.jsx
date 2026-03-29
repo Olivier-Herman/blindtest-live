@@ -288,7 +288,7 @@ export default function BullsRaceAdmin() {
 
       {/* Tabs */}
       <div style={{ borderBottom: '1px solid rgba(255,255,255,.07)', padding: '0 20px', display: 'flex' }}>
-        {[['control','🎮 Contrôle'],['plateau','🗺 Plateau'],['questions','❓ Questions']].map(([id, label]) => (
+        {[['control','🎮 JEU'],['questions','❓ Questions']].map(([id, label]) => (
           <button key={id} className={`tab-btn ${tab === id ? 'active' : ''}`} onClick={() => setTab(id)}>{label}</button>
         ))}
       </div>
