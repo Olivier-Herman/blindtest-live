@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
+import LiveOverlay from './pages/LiveOverlay'
 
 const BlindTestAdmin   = lazy(() => import('./games/blindtest/Admin'))
 const BlindTestOverlay = lazy(() => import('./games/blindtest/Overlay'))
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/blindtest/overlay"  element={<BlindTestOverlay />} />
           <Route path="/bulls-race"         element={<BullsRaceAdmin />} />
           <Route path="/bulls-race/overlay" element={<BullsRaceOverlay />} />
+          <Route path="/live-overlay"       element={<LiveOverlay />} />
           <Route path="*"                   element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

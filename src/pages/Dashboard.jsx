@@ -147,8 +147,22 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Live Overlay button */}
+      <div style={{ marginTop: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, animation: 'fadeIn 1s ease .6s both' }}>
+        <button
+          onClick={() => window.open('/live-overlay', '_blank')}
+          style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 28px', background: 'rgba(255,45,120,.08)', border: '1px solid rgba(255,45,120,.3)', borderRadius: 10, cursor: 'pointer', fontFamily: 'Share Tech Mono', fontSize: 12, color: '#ff2d78', letterSpacing: '.2em', transition: 'all .2s' }}
+          onMouseEnter={e => { e.currentTarget.style.background='rgba(255,45,120,.15)'; e.currentTarget.style.borderColor='rgba(255,45,120,.6)' }}
+          onMouseLeave={e => { e.currentTarget.style.background='rgba(255,45,120,.08)'; e.currentTarget.style.borderColor='rgba(255,45,120,.3)' }}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff2d78', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          🎥 OVERLAY LIVE (ENTRE LES JEUX)
+        </button>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', letterSpacing: '.2em' }}>Ouvre dans un nouvel onglet — à capturer dans OBS</div>
+      </div>
+
       {/* Footer */}
-      <div style={{ marginTop: 60, fontSize: 10, color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', animation: 'fadeIn 1s ease .5s both' }}>
+      <div style={{ marginTop: 30, fontSize: 10, color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono', letterSpacing: '0.3em', animation: 'fadeIn 1s ease .5s both' }}>
         BULLS LIVE GAMES • v2.0
       </div>
     </div>
