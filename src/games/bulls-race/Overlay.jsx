@@ -18,7 +18,7 @@ const BOARD = [
   { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
   { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
   { id: 27, type: 'normal' }, { id: 28, type: 'duel'   },
-  { id: 29, type: 'wheel'  }, { id: 30, type: 'finish' },
+  { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
 ]
 
 // Grille serpentine : case id → [col, row] (row 0 = haut, row 4 = bas)
