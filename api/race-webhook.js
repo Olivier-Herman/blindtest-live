@@ -216,7 +216,8 @@ export default async function handler(req, res) {
     const result = WHEEL_SEGMENTS[Math.floor(Math.random() * WHEEL_SEGMENTS.length)]
     caseEffect = { type: 'wheel', player: username, result: result.id, label: result.label, emoji: result.emoji }
     nextStatus = 'wheel'
-    // On stocke le résultat et le joueur
+    // Délai 1.5s pour laisser le pion se déplacer visuellement avant d'afficher la roue
+    await new Promise(r => setTimeout(r, 1500))
     await supabase.from('race_state').update({
       wheel_player: username, wheel_result: result.id
     }).eq('session_id', SESSION_ID)
