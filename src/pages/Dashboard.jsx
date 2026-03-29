@@ -1,43 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-
-const GAMES = [
-  {
-    id: 'blindtest',
-    name: 'Blind Test',
-    emoji: '🎵',
-    description: 'Devine le titre ou l\'artiste avant la fin du timer',
-    status: 'available',
-    color: '#c8a96e',
-    adminPath: '/blindtest',
-    overlayPath: '/blindtest/overlay',
-  },
-  {
-    id: 'bulls-race',
-    name: 'Bulls Race',
-    emoji: '🎲',
-    description: 'Plateau animé — avance ton pion en répondant aux questions',
-    status: 'available',
-    color: '#ff2d78',
-    adminPath: '/bulls-race',
-    overlayPath: '/bulls-race/overlay',
-  },
-  {
-    id: 'coming-soon-1',
-    name: 'Roue Fortune',
-    emoji: '🎰',
-    description: 'Bientôt disponible',
-    status: 'soon',
-    color: 'rgba(255,255,255,.15)',
-  },
-  {
-    id: 'coming-soon-2',
-    name: 'Battle Définitions',
-    emoji: '📝',
-    description: 'Bientôt disponible',
-    status: 'soon',
-    color: 'rgba(255,255,255,.15)',
-  },
-]
+import { GAMES } from '../games.config'
 
 export default function Dashboard() {
   const navigate = useNavigate()

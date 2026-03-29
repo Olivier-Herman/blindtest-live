@@ -1,3 +1,5 @@
+import { GAMES } from '../games.config'
+
 export default function LiveOverlay() {
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#050510', overflow: 'hidden', position: 'relative', fontFamily: "'Orbitron', monospace" }}>
@@ -74,7 +76,7 @@ export default function LiveOverlay() {
       </svg>
 
       {/* ══ ZONE CAMÉRA (grande, centrée bas) ══ */}
-      <div style={{ position: 'absolute', bottom: '2vh', left: '50%', transform: 'translateX(-50%)', width: '52vw', height: '62vh', zIndex: 15 }}>
+      <div style={{ position: 'absolute', bottom: '1vh', left: '50%', transform: 'translateX(-50%)', width: '60vw', height: '76vh', zIndex: 15 }}>
         {/* Frame caméra */}
         <div style={{ width: '100%', height: '100%', borderRadius: '1.5vw', background: 'rgba(0,0,0,.5)', border: '2px solid rgba(255,45,120,.5)', animation: 'borderGlow 3s ease-in-out infinite', position: 'relative', overflow: 'hidden' }}>
           {/* Coins intérieurs */}
@@ -98,19 +100,18 @@ export default function LiveOverlay() {
         </div>
       </div>
 
-      {/* ══ SLOGAN GAUCHE ══ */}
-      <div style={{ position: 'absolute', left: '3.5vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, textAlign: 'left' }}>
-        <div style={{ fontSize: '2vw', fontWeight: 900, color: '#ffffff', lineHeight: 1.5, animation: 'fadeSlide .8s ease .2s both' }}>
-          JOUE EN
-          <br />
-          <span style={{ color: '#ff2d78', fontSize: '2.8vw' }}>DIRECT</span>
-          <br />
-          AVEC MOI
-        </div>
-        <div style={{ width: '8vw', height: '2px', background: 'linear-gradient(90deg, #ff2d78, transparent)', marginTop: '1.5vh', marginBottom: '1.5vh' }} />
-        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.8vw', color: 'rgba(255,255,255,.3)', lineHeight: 2, letterSpacing: '.2em', animation: 'fadeSlide .8s ease .4s both' }}>
-          INTERAGIS DANS LE CHAT<br />POUR PARTICIPER
-        </div>
+      {/* ══ JEUX DYNAMIQUES GAUCHE ══ */}
+      <div style={{ position: 'absolute', left: '2.5vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, display: 'flex', flexDirection: 'column', gap: '1.2vh' }}>
+        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.7vw', color: 'rgba(255,255,255,.2)', letterSpacing: '.6em', marginBottom: '.5vh' }}>NOS JEUX</div>
+        {GAMES.map((g, i) => (
+          <div key={g.id} style={{ display: 'flex', alignItems: 'center', gap: '.8vw', padding: '.8vh 1.2vw', borderRadius: '.8vw', background: g.status === 'available' ? `${g.color}12` : 'rgba(255,255,255,.03)', border: `1px solid ${g.status === 'available' ? g.color+'40' : 'rgba(255,255,255,.08)'}`, animation: `fadeSlide .6s ease ${i*.15}s both`, opacity: g.status === 'available' ? 1 : .35, minWidth: '14vw' }}>
+            <div style={{ fontSize: '1.5vw' }}>{g.emoji}</div>
+            <div>
+              <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.85vw', fontWeight: 900, color: g.status === 'available' ? g.color : 'rgba(255,255,255,.3)', letterSpacing: '.08em' }}>{g.name}</div>
+              {g.status === 'soon' && <div style={{ fontSize: '.6vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.2em', marginTop: '.2vh' }}>BIENTÔT</div>}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* ══ SLOGAN DROIT ══ */}
