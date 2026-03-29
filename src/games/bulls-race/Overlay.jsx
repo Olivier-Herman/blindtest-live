@@ -18,7 +18,7 @@ const BOARD = [
   { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
   { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
   { id: 27, type: 'normal' }, { id: 28, type: 'duel'   },
-  { id: 29, type: 'bonus',  value: 2  }, { id: 30, type: 'finish' },
+  { id: 29, type: 'wheel'  }, { id: 30, type: 'finish' },
 ]
 
 // Grille serpentine : case id → [col, row] (row 0 = haut, row 4 = bas)
@@ -34,9 +34,9 @@ const GRID = {}
 // Row 0 (haut): cases 25-30 gauche→droite
 ;[25,26,27,28,29,30].forEach((id, i) => { GRID[id] = [i, 0] })
 
-const CASE_BG    = { normal: 'rgba(255,255,255,.06)', bonus: 'rgba(255,215,0,.18)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.18)', finish: 'rgba(200,169,110,.3)' }
-const CASE_BORDER= { normal: 'rgba(255,255,255,.12)', bonus: 'rgba(255,215,0,.5)',  trap: 'rgba(255,60,60,.5)',  duel: 'rgba(123,47,255,.6)',  joker: 'rgba(0,245,255,.5)',  finish: 'rgba(200,169,110,.8)' }
-const CASE_ICON  = { normal: '', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', finish: '🏁' }
+const CASE_BG    = { normal: 'rgba(255,255,255,.06)', bonus: 'rgba(255,215,0,.18)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.18)', wheel: 'rgba(168,85,247,.2)', finish: 'rgba(200,169,110,.3)' }
+const CASE_BORDER= { normal: 'rgba(255,255,255,.12)', bonus: 'rgba(255,215,0,.5)',  trap: 'rgba(255,60,60,.5)',  duel: 'rgba(123,47,255,.6)',  joker: 'rgba(0,245,255,.5)',  wheel: 'rgba(168,85,247,.8)', finish: 'rgba(200,169,110,.8)' }
+const CASE_ICON  = { normal: '', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', wheel: '🎡', finish: '🏁' }
 
 // Board area: left 23vw panel + right 77vw board
 // Board occupies rows: top 8vh header, 10vh bottom bar → 82vh for board
@@ -150,7 +150,7 @@ export default function BullsRaceOverlay() {
 
   const isPodium = state.status === 'finished'
   const isPlaying = state.status === 'playing'
-  const isRevealed = state.status === 'revealed' || state.status === 'duel_result'
+  const isRevealed = state.status === 'revealed' || state.status === 'duel_result' || state.status === 'wheel_result'
   const isWaiting = state.status === 'waiting'
 
   return (
@@ -170,6 +170,10 @@ export default function BullsRaceOverlay() {
         @keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
         @keyframes starFloat{ 0%{transform:translateY(0) rotate(0);opacity:.6} 100%{transform:translateY(-50vh) rotate(360deg);opacity:0} }
         .pawn { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8vw; font-weight: 900; transition: left .8s cubic-bezier(.34,1.56,.64,1), top .8s cubic-bezier(.34,1.56,.64,1); z-index: 30; }
+        @keyframes wheelSpin { 0%{transform:rotate(0deg)} 100%{transform:rotate(var(--spin-deg))} }
+        @keyframes wheelGlow { 0%,100%{box-shadow:0 0 30px rgba(168,85,247,.4),0 0 60px rgba(168,85,247,.2)} 50%{box-shadow:0 0 60px rgba(168,85,247,.8),0 0 120px rgba(168,85,247,.4)} }
+        @keyframes wheelResult { 0%{transform:scale(0) rotate(-10deg);opacity:0} 60%{transform:scale(1.15) rotate(3deg);opacity:1} 100%{transform:scale(1) rotate(0)} }
+        @keyframes wheelBgPulse { 0%,100%{background:radial-gradient(ellipse at 50% 50%, rgba(168,85,247,.2) 0%, rgba(0,0,0,.9) 70%)} 50%{background:radial-gradient(ellipse at 50% 50%, rgba(168,85,247,.35) 0%, rgba(0,0,0,.9) 70%)} }
 
         /* ═══ EFFECT ANIMATIONS ═══ */
         @keyframes effectBgIn   { from{opacity:0} to{opacity:1} }
@@ -319,7 +323,7 @@ export default function BullsRaceOverlay() {
       )}
 
       {/* ═══ JEU NORMAL ═══ */}
-      {!isPodium && state.status !== 'rules' && state.status !== 'waiting' && state.status !== 'duel' && state.status !== 'duel_result' && (
+      {!isPodium && state.status !== 'rules' && state.status !== 'waiting' && state.status !== 'duel' && state.status !== 'duel_result' && state.status !== 'wheel' && state.status !== 'wheel_result' && (
         <>
           {/* Header */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: `${BOARD_TOP}vh`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2vw', zIndex: 20, borderBottom: '1px solid rgba(255,255,255,.05)', background: 'rgba(0,0,0,.4)' }}>
@@ -384,8 +388,8 @@ export default function BullsRaceOverlay() {
             const border = CASE_BORDER[c.type] || CASE_BORDER.normal
             const icon   = CASE_ICON[c.type]   || ''
             const isFinish = c.type === 'finish'
-            const typeLabel = { bonus: 'BONUS', trap: 'PIÈGE', duel: 'DUEL', joker: 'JOKER', finish: 'ARRIVÉE' }
-            const typeColor = { bonus: '#ffd700', trap: '#ff6060', duel: '#b388ff', joker: '#00f5ff', finish: '#c8a96e' }
+            const typeLabel = { bonus: 'BONUS', trap: 'PIÈGE', duel: 'DUEL', joker: 'JOKER', wheel: 'MYSTÈRE', finish: 'ARRIVÉE' }
+            const typeColor = { bonus: '#ffd700', trap: '#ff6060', duel: '#b388ff', joker: '#00f5ff', wheel: '#a855f7', finish: '#c8a96e' }
             return (
               <div key={c.id} style={{ position: 'absolute', left, top, width: `${CELL_W}vw`, height: `${CELL_H}vh`, background: bg, border: `1px solid ${border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10, transition: 'background .3s', gap: '.3vh' }}>
                 {/* Numéro de case */}
@@ -535,6 +539,79 @@ export default function BullsRaceOverlay() {
               </div>
             </div>
           )}
+
+          {/* ═══ ROUE MYSTÈRE ═══ */}
+          {(state.status === 'wheel' || state.status === 'wheel_result') && (() => {
+            const ef = state.case_effect ? (typeof state.case_effect === 'string' ? JSON.parse(state.case_effect) : state.case_effect) : {}
+            const isResult = state.status === 'wheel_result'
+
+            const SEGMENTS = [
+              { id: 'blocked',   label: 'Bloqué 1 tour',             emoji: '🔒', color: '#ff2d78' },
+              { id: 'advance1',  label: 'Avance 1 case',             emoji: '⬆️', color: '#00ff88' },
+              { id: 'back1',     label: 'Recule 1 case',             emoji: '⬇️', color: '#ff8c00' },
+              { id: 'first',     label: 'Passe devant tout le monde',emoji: '🚀', color: '#ffd700' },
+              { id: 'last',      label: 'Passe derrière tout le monde',emoji: '🐢', color: '#00f5ff' },
+              { id: 'start',     label: 'Retour au départ',          emoji: '🏠', color: '#a855f7' },
+            ]
+            const N = SEGMENTS.length
+            const segAngle = 360 / N
+            const resultIdx = SEGMENTS.findIndex(s => s.id === ef.result)
+            // Calcul rotation pour atterrir sur le bon segment (aiguille en haut = 270deg)
+            // On tourne plusieurs tours + alignement précis
+            const targetAngle = resultIdx >= 0 ? (360 - (resultIdx * segAngle + segAngle / 2)) : 0
+            const totalSpin = 1800 + targetAngle // 5 tours + alignement
+            const spinStyle = isResult ? { '--spin-deg': `${totalSpin}deg`, animation: 'wheelSpin 5s cubic-bezier(.17,.67,.12,1) forwards' } : { animation: 'wheelSpin 2s linear infinite', '--spin-deg': '360deg' }
+
+            return (
+              <div style={{ position: 'absolute', inset: 0, zIndex: 70, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,.93)', animation: 'wheelBgPulse 2s ease infinite' }}>
+                {/* Titre */}
+                <div style={{ fontSize: '1.5vw', color: '#fff', fontFamily: 'Share Tech Mono', letterSpacing: '.5em', marginBottom: '1vh', fontWeight: 900 }}>🎡 CASE MYSTÈRE</div>
+                <div style={{ fontSize: '3vw', fontWeight: 900, color: '#a855f7', textShadow: '0 0 3vw rgba(168,85,247,.8)', letterSpacing: '.2em', marginBottom: '3vh' }}>@{state.wheel_player}</div>
+
+                {/* Roue */}
+                <div style={{ position: 'relative', width: '38vw', height: '38vw', marginBottom: '3vh' }}>
+                  {/* Aiguille */}
+                  <div style={{ position: 'absolute', top: '-2vw', left: '50%', transform: 'translateX(-50%)', zIndex: 10, fontSize: '3vw', filter: 'drop-shadow(0 0 1vw #fff)' }}>▼</div>
+
+                  {/* Roue SVG */}
+                  <svg viewBox="0 0 400 400" style={{ width: '100%', height: '100%', ...spinStyle, transformOrigin: '50% 50%', animation: spinStyle.animation, '--spin-deg': spinStyle['--spin-deg'], filter: 'drop-shadow(0 0 2vw rgba(168,85,247,.6))' }}>
+                    {SEGMENTS.map((seg, i) => {
+                      const startAngle = (i * segAngle - 90) * Math.PI / 180
+                      const endAngle = ((i + 1) * segAngle - 90) * Math.PI / 180
+                      const x1 = 200 + 190 * Math.cos(startAngle)
+                      const y1 = 200 + 190 * Math.sin(startAngle)
+                      const x2 = 200 + 190 * Math.cos(endAngle)
+                      const y2 = 200 + 190 * Math.sin(endAngle)
+                      const midAngle = ((i + 0.5) * segAngle - 90) * Math.PI / 180
+                      const tx = 200 + 130 * Math.cos(midAngle)
+                      const ty = 200 + 130 * Math.sin(midAngle)
+                      return (
+                        <g key={seg.id}>
+                          <path d={`M200,200 L${x1},${y1} A190,190 0 0,1 ${x2},${y2} Z`} fill={seg.color} opacity="0.85" stroke="#000" strokeWidth="2" />
+                          <text x={tx} y={ty} textAnchor="middle" dominantBaseline="middle" fontSize="28" style={{ pointerEvents: 'none' }}>{seg.emoji}</text>
+                        </g>
+                      )
+                    })}
+                    <circle cx="200" cy="200" r="25" fill="#111" stroke="#fff" strokeWidth="3" />
+                    <text x="200" y="200" textAnchor="middle" dominantBaseline="middle" fontSize="20">🎡</text>
+                  </svg>
+                </div>
+
+                {/* Résultat */}
+                {isResult && (
+                  <div style={{ textAlign: 'center', animation: 'wheelResult .6s cubic-bezier(.34,1.56,.64,1) 5.2s both' }}>
+                    <div style={{ fontSize: '5vw', marginBottom: '1vh' }}>{ef.emoji}</div>
+                    <div style={{ fontSize: '3.5vw', fontWeight: 900, color: '#fff', textShadow: '0 0 3vw rgba(168,85,247,.8)' }}>{ef.label} !</div>
+                  </div>
+                )}
+                {!isResult && (
+                  <div style={{ fontSize: '1.2vw', color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em', animation: 'qPulse 1s infinite' }}>
+                    LA ROUE TOURNE...
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* ═══ DUEL PERSISTANT ═══ */}
           {(state.status === 'duel' || state.status === 'duel_result') && (() => {

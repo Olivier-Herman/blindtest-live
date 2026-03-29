@@ -18,11 +18,11 @@ const BOARD = [
   { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
   { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
   { id: 27, type: 'normal' }, { id: 28, type: 'duel'   },
-  { id: 29, type: 'bonus',  value: 2  }, { id: 30, type: 'finish' },
+  { id: 29, type: 'wheel'  }, { id: 30, type: 'finish' },
 ]
 
-const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }
-const CASE_COLORS = { normal: 'rgba(255,255,255,.08)', bonus: 'rgba(255,215,0,.2)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.2)', start: 'rgba(255,255,255,.05)', finish: 'rgba(200,169,110,.3)' }
+const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', wheel: '🎡', start: '🚀', finish: '🏁' }
+const CASE_COLORS = { normal: 'rgba(255,255,255,.08)', bonus: 'rgba(255,215,0,.2)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.2)', wheel: 'rgba(168,85,247,.25)', start: 'rgba(255,255,255,.05)', finish: 'rgba(200,169,110,.3)' }
 
 export default function BullsRaceAdmin() {
   const [previousStatus, setPreviousStatus] = useState('idle')
@@ -226,8 +226,8 @@ export default function BullsRaceAdmin() {
     await supabase.from('race_players').delete().eq('id', playerId)
   }
 
-  const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', duel_result: '#ff8c00', finished: '#c8a96e', rules: '#b388ff' }
-  const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', duel_result: '⚔️ RÉSULTAT DUEL', finished: '🏆 TERMINÉ', rules: '🔊 RÈGLES' }
+  const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', duel_result: '#ff8c00', wheel: '#a855f7', wheel_result: '#a855f7', finished: '#c8a96e', rules: '#b388ff' }
+  const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', duel_result: '⚔️ RÉSULTAT DUEL', wheel: '🎡 ROUE', wheel_result: '🎡 RÉSULTAT ROUE', finished: '🏆 TERMINÉ', rules: '🔊 RÈGLES' }
   const unusedCount = questions.filter(q => !q.used).length
 
   return (
@@ -568,7 +568,7 @@ function renderBoardCell(id, players) {
     { id: 18, type: 'normal' }, { id: 19, type: 'trap', value: -2 }, { id: 20, type: 'normal' },
     { id: 21, type: 'duel' }, { id: 22, type: 'normal' }, { id: 23, type: 'bonus', value: 2 },
     { id: 24, type: 'normal' }, { id: 25, type: 'trap', value: -3 }, { id: 26, type: 'joker' },
-    { id: 27, type: 'normal' }, { id: 28, type: 'duel' }, { id: 29, type: 'bonus', value: 2 },
+    { id: 27, type: 'normal' }, { id: 28, type: 'duel' }, { id: 29, type: 'wheel' },
     { id: 30, type: 'finish' },
   ]
   const CASE_ICONS  = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }
