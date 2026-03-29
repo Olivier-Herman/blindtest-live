@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase, SESSION_ID } from '../lib/supabase'
+import { supabase, SESSION_ID } from '../../lib/supabase'
 
 export default function Overlay() {
   const [gameState, setGameState] = useState({ status: 'idle', song_title: '', song_artist: '', winner_name: '', songs_remaining: 0, timer_duration: 30 })

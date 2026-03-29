@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { supabase, SESSION_ID } from '../lib/supabase'
+import { supabase, SESSION_ID } from '../../lib/supabase'
 
 const adminSupabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
