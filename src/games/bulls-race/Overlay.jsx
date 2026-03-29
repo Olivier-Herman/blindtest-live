@@ -651,6 +651,19 @@ function WheelScreen({ state }) {
   const ef = state.case_effect ? (typeof state.case_effect === 'string' ? JSON.parse(state.case_effect) : state.case_effect) : {}
   const isResult = state.status === 'wheel_result'
 
+  // Auto-appel après 4s pour déclencher le résultat
+  useEffect(() => {
+    if (state.status !== 'wheel') return
+    const t = setTimeout(async () => {
+      try {
+        await fetch('https://blindtest-live.vercel.app/api/race-wheel-apply', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }
+        })
+      } catch(e) { console.error('wheel-apply error', e) }
+    }, 4000)
+    return () => clearTimeout(t)
+  }, [state.status])
+
   const SEGMENTS = [
     { id: 'blocked',  label: 'Bloqué 1 tour',              emoji: '🔒', color: '#ff2d78' },
     { id: 'advance1', label: 'Avance 1 case',              emoji: '⬆️', color: '#00ff88' },
