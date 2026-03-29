@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 4000,
         messages: [{
           role: 'user',
@@ -49,14 +49,19 @@ Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou a
     })
 
     const data = await response.json()
-    if (!data.content?.[0]?.text) throw new Error('Réponse Claude invalide')
+    console.log('[race-generate] status:', response.status)
+    console.log('[race-generate] data:', JSON.stringify(data).slice(0, 500))
+
+    if (!data.content?.[0]?.text) {
+      throw new Error(`Réponse Claude invalide: ${JSON.stringify(data).slice(0, 300)}`)
+    }
 
     let text = data.content[0].text.trim()
     text = text.replace(/```json|```/g, '').trim()
 
     let questions
     try { questions = JSON.parse(text) }
-    catch { throw new Error('JSON invalide dans la réponse Claude') }
+    catch (e) { throw new Error(`JSON invalide: ${e.message} — texte: ${text.slice(0, 200)}`) }
 
     if (!Array.isArray(questions) || questions.length === 0)
       throw new Error('Aucune question générée')
@@ -77,7 +82,7 @@ Retourne UNIQUEMENT un tableau JSON valide, sans markdown, sans texte avant ou a
     await supabase.from('race_questions').insert(rows)
     return res.status(200).json({ success: true, count: rows.length })
   } catch (err) {
-    console.error('[race-generate]', err)
+    console.error('[race-generate]', err.message)
     return res.status(500).json({ error: err.message })
   }
 }
