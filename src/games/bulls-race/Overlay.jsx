@@ -63,6 +63,48 @@ export default function BullsRaceOverlay() {
   const effectTimerRef = useRef(null)
 
   useEffect(() => {
+    if (state.status === 'rules') {
+      window.speechSynthesis.cancel()
+      const text = `Bienvenue dans Bulls Race ! Voici les règles du jeu. 
+      L'objectif est simple : soyez le premier à atteindre la case 30 en répondant correctement aux questions.
+      Le premier joueur à trouver la bonne réponse avance de 3 cases. Les autres joueurs qui trouvent avancent d'une case.
+      Attention aux cases spéciales ! La case Bonus vous fait avancer de 2 à 3 cases supplémentaires.
+      La case Piège vous fait reculer de 2 à 3 cases. Aïe !
+      La case Duel vous confronte au joueur en tête. Le prochain à répondre correctement remporte le duel.
+      Et enfin, la case Joker vous permet de bloquer le joueur en tête pendant un round entier.
+      Pour rejoindre la partie, tapez point d'exclamation join dans le chat TikTok. Bonne chance à tous !`
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'fr-FR'
+      utterance.rate = 0.95
+      utterance.pitch = 1
+      utterance.volume = 1
+      const voices = window.speechSynthesis.getVoices()
+      const frVoice = voices.find(v => v.lang === 'fr-FR' || v.lang.startsWith('fr'))
+      if (frVoice) utterance.voice = frVoice
+      window.speechSynthesis.speak(utterance)
+    } else {
+      window.speechSynthesis.cancel()
+    }
+  }, [state.status])
+
+  useEffect(() => {
+    // Load voices and retry speech if rules already active
+    window.speechSynthesis.onvoiceschanged = () => {
+      if (state.status === 'rules') {
+        window.speechSynthesis.cancel()
+        const text = `Bienvenue dans Bulls Race ! L'objectif est d'atteindre la case 30 en répondant aux questions. Le premier à répondre avance de 3 cases, les suivants d'une case. Attention aux cases spéciales : Bonus, Piège, Duel et Joker. Tapez point d'exclamation join dans le chat pour rejoindre !`
+        const utterance = new SpeechSynthesisUtterance(text)
+        utterance.lang = 'fr-FR'
+        utterance.rate = 0.95
+        const voices = window.speechSynthesis.getVoices()
+        const frVoice = voices.find(v => v.lang === 'fr-FR' || v.lang.startsWith('fr'))
+        if (frVoice) utterance.voice = frVoice
+        window.speechSynthesis.speak(utterance)
+      }
+    }
+  }, [state.status])
+
+  useEffect(() => {
     loadAll()
     const ch1 = supabase.channel('overlay_race_state')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'race_state', filter: `session_id=eq.${SESSION_ID}` },
@@ -173,8 +215,37 @@ export default function BullsRaceOverlay() {
         </div>
       )}
 
+      {/* ═══ ÉCRAN RÈGLES ═══ */}
+      {state.status === 'rules' && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'radial-gradient(ellipse at 50% 30%, rgba(123,47,255,.12) 0%, #000 70%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4vw', animation: 'fadeIn .6s ease' }}>
+          <div style={{ fontSize: '1.8vw', color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', letterSpacing: '.6em', marginBottom: '2vh' }}>✦ RÈGLES DU JEU ✦</div>
+          <div style={{ fontSize: '4vw', fontWeight: 900, color: '#ff2d78', letterSpacing: '.2em', marginBottom: '4vh', textShadow: '0 0 30px rgba(255,45,120,.5)' }}>🎲 BULLS RACE</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2vw', maxWidth: '90vw', width: '100%' }}>
+            {[
+              { icon: '🎯', title: 'OBJECTIF', text: 'Soyez le premier à atteindre la case 30 en répondant correctement aux questions !' },
+              { icon: '🥇', title: '1ER À RÉPONDRE', text: 'Le premier qui trouve la bonne réponse avance de 3 cases. Les suivants avancent d'1 case.' },
+              { icon: '⭐', title: 'CASE BONUS', text: 'Vous avancez de 2 à 3 cases supplémentaires. La chance est avec vous !' },
+              { icon: '💀', title: 'CASE PIÈGE', text: 'Vous reculez de 2 à 3 cases. Attention où vous mettez les pieds !' },
+              { icon: '⚔️', title: 'CASE DUEL', text: 'Vous affrontez le joueur en tête ! Le prochain à répondre correctement gagne l'affrontement.' },
+              { icon: '🃏', title: 'CASE JOKER', text: 'Vous bloquez le joueur en tête pendant un round. Il ne peut pas répondre !' },
+            ].map((r, i) => (
+              <div key={i} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.1)', borderRadius: '1vw', padding: '1.5vw 2vw', display: 'flex', gap: '1.2vw', alignItems: 'flex-start', animation: `fadeIn .5s ease ${i * .15}s both` }}>
+                <div style={{ fontSize: '2.5vw', flexShrink: 0 }}>{r.icon}</div>
+                <div>
+                  <div style={{ fontSize: '1vw', fontWeight: 900, color: '#ff2d78', fontFamily: 'Share Tech Mono', letterSpacing: '.15em', marginBottom: '.5vh' }}>{r.title}</div>
+                  <div style={{ fontSize: '1.1vw', color: '#fff', lineHeight: 1.6, fontFamily: 'Share Tech Mono' }}>{r.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: '3vh', fontSize: '1.2vw', color: 'rgba(255,255,255,.4)', fontFamily: 'Share Tech Mono', letterSpacing: '.3em' }}>
+            TAPEZ !join DANS LE CHAT POUR REJOINDRE LA PARTIE
+          </div>
+        </div>
+      )}
+
       {/* ═══ JEU NORMAL ═══ */}
-      {!isPodium && (
+      {!isPodium && state.status !== 'rules' && (
         <>
           {/* Header */}
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: `${BOARD_TOP}vh`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 2vw', zIndex: 20, borderBottom: '1px solid rgba(255,255,255,.05)', background: 'rgba(0,0,0,.4)' }}>

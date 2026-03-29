@@ -126,13 +126,13 @@ export default function BullsRaceAdmin() {
     if (!nextQ) return alert('Plus de questions disponibles ! Générez-en d\'autres.')
     setLoading(true)
     const timerEnd = new Date(Date.now() + 30 * 1000).toISOString()
-    await supabase.from('race_questions').update({ used: true }).eq('id', nextQ.id)
-    await supabase.from('race_state').update({
+    const newRound = (state.round_number || 0) + 1
+    const newState = {
       status: 'playing',
       current_question: nextQ.question,
       current_answer: nextQ.answer,
       current_category: nextQ.category,
-      round_number: (state.round_number || 0) + 1,
+      round_number: newRound,
       first_answerer: null,
       duel_challenger: null,
       duel_opponent: null,
@@ -140,8 +140,10 @@ export default function BullsRaceAdmin() {
       timer_end: timerEnd,
       timer_duration: 30,
       updated_at: new Date().toISOString()
-    }).eq('session_id', SESSION_ID)
-    await loadState()
+    }
+    await supabase.from('race_questions').update({ used: true }).eq('id', nextQ.id)
+    await supabase.from('race_state').update(newState).eq('session_id', SESSION_ID)
+    setState(prev => ({ ...prev, ...newState }))
     loadQuestions()
     setLoading(false)
   }
@@ -161,6 +163,16 @@ export default function BullsRaceAdmin() {
     if (!confirm('Terminer la partie et afficher le gagnant ?')) return
     const leader = players[0]
     await supabase.from('race_state').update({ status: 'finished', winner: leader?.username || null, updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
+  }
+
+  async function handleShowRules() {
+    await supabase.from('race_state').update({ status: 'rules', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
+    await loadState()
+  }
+
+  async function handleCloseRules() {
+    await supabase.from('race_state').update({ status: 'idle', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
+    await loadState()
   }
 
   async function handleReset() {
@@ -187,8 +199,8 @@ export default function BullsRaceAdmin() {
     await supabase.from('race_players').delete().eq('id', playerId)
   }
 
-  const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', finished: '#c8a96e' }
-  const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', finished: '🏆 TERMINÉ' }
+  const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', finished: '#c8a96e', rules: '#b388ff' }
+  const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', finished: '🏆 TERMINÉ', rules: '🔊 RÈGLES' }
   const unusedCount = questions.filter(q => !q.used).length
 
   return (
@@ -238,6 +250,11 @@ export default function BullsRaceAdmin() {
             <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: statusColor[state.status] || '#888', marginRight: 6, animation: state.status === 'playing' ? 'pulse 1s infinite' : 'none' }} />
             {statusLabel[state.status] || state.status}
           </div>
+          {state.status === 'rules' ? (
+            <button className="btn btn-ghost" style={{ width: 'auto', padding: '7px 12px', fontSize: 10, color: '#b388ff', borderColor: 'rgba(179,136,255,.4)' }} onClick={handleCloseRules}>✕ FERMER RÈGLES</button>
+          ) : (
+            <button className="btn btn-ghost" style={{ width: 'auto', padding: '7px 12px', fontSize: 10, color: '#b388ff', borderColor: 'rgba(179,136,255,.4)' }} onClick={handleShowRules}>🔊 RÈGLES DU JEU</button>
+          )}
           <button className="btn btn-ghost" style={{ width: 'auto', padding: '7px 12px', fontSize: 10 }} onClick={handleReset}>🔄 Reset</button>
         </div>
       </div>
