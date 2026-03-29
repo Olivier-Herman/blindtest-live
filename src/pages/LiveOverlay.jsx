@@ -74,7 +74,7 @@ export default function LiveOverlay() {
       </svg>
 
       {/* ══ ZONE CAMÉRA (grande, centrée bas) ══ */}
-      <div style={{ position: 'absolute', bottom: '3.5vh', left: '50%', transform: 'translateX(-50%)', width: '46vw', height: '36vh', zIndex: 15 }}>
+      <div style={{ position: 'absolute', bottom: '2vh', left: '50%', transform: 'translateX(-50%)', width: '52vw', height: '62vh', zIndex: 15 }}>
         {/* Frame caméra */}
         <div style={{ width: '100%', height: '100%', borderRadius: '1.5vw', background: 'rgba(0,0,0,.5)', border: '2px solid rgba(255,45,120,.5)', animation: 'borderGlow 3s ease-in-out infinite', position: 'relative', overflow: 'hidden' }}>
           {/* Coins intérieurs */}
@@ -98,38 +98,28 @@ export default function LiveOverlay() {
         </div>
       </div>
 
-      {/* ══ JEUX DISPONIBLES (gauche) ══ */}
-      <div style={{ position: 'absolute', left: '3vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, display: 'flex', flexDirection: 'column', gap: '1.5vh' }}>
-        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.75vw', color: 'rgba(255,255,255,.25)', letterSpacing: '.5em', marginBottom: '.5vh' }}>JEUX</div>
-        {[
-          { emoji: '🎲', name: 'Bulls Race',  color: '#ff2d78', available: true  },
-          { emoji: '🎵', name: 'Blind Test',  color: '#c8a96e', available: true  },
-          { emoji: '🎰', name: 'Roue Fortune', color: 'rgba(255,255,255,.2)', available: false },
-        ].map((g, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '.8vw', padding: '.8vh 1.2vw', borderRadius: '.8vw', background: g.available ? `${g.color}12` : 'rgba(255,255,255,.03)', border: `1px solid ${g.available ? g.color+'40' : 'rgba(255,255,255,.08)'}`, animation: `fadeSlide .6s ease ${i*.15}s both`, opacity: g.available ? 1 : .4 }}>
-            <div style={{ fontSize: '1.4vw' }}>{g.emoji}</div>
-            <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.85vw', fontWeight: 900, color: g.available ? g.color : 'rgba(255,255,255,.3)', letterSpacing: '.1em' }}>{g.name}</div>
-            {!g.available && <div style={{ fontSize: '.6vw', color: 'rgba(255,255,255,.2)', fontFamily: 'Share Tech Mono', letterSpacing: '.2em' }}>BIENTÔT</div>}
-          </div>
-        ))}
-      </div>
-
-      {/* ══ SLOGAN / APPEL À L'ACTION (droite) ══ */}
-      <div style={{ position: 'absolute', right: '3vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, textAlign: 'right', maxWidth: '18vw' }}>
-        <div style={{ fontSize: '1.8vw', fontWeight: 900, color: '#ffffff', lineHeight: 1.4, marginBottom: '2vh', animation: 'fadeSlide .8s ease .3s both' }}>
+      {/* ══ SLOGAN GAUCHE ══ */}
+      <div style={{ position: 'absolute', left: '3.5vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, textAlign: 'left' }}>
+        <div style={{ fontSize: '2vw', fontWeight: 900, color: '#ffffff', lineHeight: 1.5, animation: 'fadeSlide .8s ease .2s both' }}>
           JOUE EN
           <br />
-          <span style={{ color: '#ff2d78' }}>DIRECT</span>
+          <span style={{ color: '#ff2d78', fontSize: '2.8vw' }}>DIRECT</span>
           <br />
           AVEC MOI
         </div>
-        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.8vw', color: 'rgba(255,255,255,.35)', lineHeight: 1.8, animation: 'fadeSlide .8s ease .5s both' }}>
-          PARTICIPE AUX JEUX
-          <br />
-          EN TAPANT DANS
-          <br />
-          LE CHAT TikTok
+        <div style={{ width: '8vw', height: '2px', background: 'linear-gradient(90deg, #ff2d78, transparent)', marginTop: '1.5vh', marginBottom: '1.5vh' }} />
+        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.8vw', color: 'rgba(255,255,255,.3)', lineHeight: 2, letterSpacing: '.2em', animation: 'fadeSlide .8s ease .4s both' }}>
+          INTERAGIS DANS LE CHAT<br />POUR PARTICIPER
         </div>
+      </div>
+
+      {/* ══ SLOGAN DROIT ══ */}
+      <div style={{ position: 'absolute', right: '3.5vw', top: '50%', transform: 'translateY(-50%)', zIndex: 20, textAlign: 'right' }}>
+        <div style={{ fontFamily: 'Share Tech Mono', fontSize: '.75vw', color: 'rgba(255,255,255,.2)', letterSpacing: '.6em', marginBottom: '1.5vh', animation: 'fadeSlide .8s ease .3s both' }}>BULLS AGENCY LIVE</div>
+        <div style={{ fontSize: '2vw', fontWeight: 900, color: '#ffffff', lineHeight: 1.5, animation: 'fadeSlide .8s ease .5s both' }}>
+          CONTENU<br /><span style={{ color: '#7b2fff', fontSize: '2.8vw' }}>LIVE</span><br />TIKTOK
+        </div>
+        <div style={{ width: '8vw', height: '2px', background: 'linear-gradient(270deg, #7b2fff, transparent)', marginTop: '1.5vh', marginLeft: 'auto' }} />
       </div>
 
       {/* ══ TICKER BAS ══ */}
