@@ -8,16 +8,16 @@ const BOARD = [
   { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
   { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
   { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
-  { id: 7,  type: 'duel'   }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
+  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
   { id: 10, type: 'bonus',  value: 2  }, { id: 11, type: 'normal' },
   { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'wheel'  },
   { id: 14, type: 'joker'  }, { id: 15, type: 'normal' },
   { id: 16, type: 'bonus',  value: 3  }, { id: 17, type: 'normal' }, { id: 18, type: 'normal' },
   { id: 19, type: 'trap',   value: -2 }, { id: 20, type: 'normal' },
-  { id: 21, type: 'duel'   }, { id: 22, type: 'normal' },
+  { id: 21, type: 'wheel'  }, { id: 22, type: 'normal' },
   { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
   { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
-  { id: 27, type: 'normal' }, { id: 28, type: 'duel'   },
+  { id: 27, type: 'normal' }, { id: 28, type: 'wheel'  },
   { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
 ]
 
@@ -214,6 +214,76 @@ export default function BullsRaceAdmin() {
   async function handleResetQuestion(id) {
     await supabase.from('race_questions').update({ used: false }).eq('id', id)
     loadQuestions()
+  }
+
+  const [newQuestion, setNewQuestion] = useState('')
+  const [newAnswer,   setNewAnswer]   = useState('')
+  const [newCategory, setNewCategory] = useState('général')
+
+  async function handleManualAdd() {
+    if (!newQuestion.trim() || !newAnswer.trim()) return
+    const row = {
+      session_id: SESSION_ID,
+      question: newQuestion.trim(),
+      answer: newAnswer.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(),
+      category: newCategory.trim() || 'général',
+      used: false,
+      position: questions.length
+    }
+    await supabase.from('race_questions').insert(row)
+    setNewQuestion(''); setNewAnswer('')
+    await loadQuestions()
+  }
+
+  async function handleCSVImport(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const text = await file.text()
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    const rows = []
+    for (const line of lines) {
+      const sep = line.includes(';') ? ';' : ','
+      const parts = line.split(sep).map(p => p.trim().replace(/^"|"$/g, ''))
+      if (parts.length < 2) continue
+      const question = parts[0]
+      const answer   = parts[1]
+      const category = parts[2] || 'général'
+      if (!question || !answer || question.toLowerCase() === 'question') continue
+      rows.push({ session_id: SESSION_ID, question, answer: answer.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(), category, used: false, position: questions.length + rows.length })
+    }
+    if (rows.length === 0) return alert('Aucune question valide')
+    await supabase.from('race_questions').insert(rows)
+    await loadQuestions()
+    alert(`✅ ${rows.length} questions importées !`)
+    e.target.value = ''
+  }
+
+  async function handleExcelImport(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    try {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js'
+      await new Promise((res, rej) => { script.onload = res; script.onerror = rej; document.head.appendChild(script) })
+      const XLSX = window.XLSX
+      const data = await file.arrayBuffer()
+      const wb = XLSX.read(data)
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const json = XLSX.utils.sheet_to_json(ws, { header: 1 })
+      const rows = []
+      for (const row of json) {
+        const question = String(row[0] || '').trim()
+        const answer   = String(row[1] || '').trim()
+        const category = String(row[2] || 'général').trim()
+        if (!question || !answer || question.toLowerCase() === 'question') continue
+        rows.push({ session_id: SESSION_ID, question, answer: answer.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(), category, used: false, position: questions.length + rows.length })
+      }
+      if (rows.length === 0) return alert('Aucune question valide')
+      await supabase.from('race_questions').insert(rows)
+      await loadQuestions()
+      alert(`✅ ${rows.length} questions importées !`)
+    } catch(err) { alert('Erreur Excel : ' + err.message) }
+    e.target.value = ''
   }
 
   async function handleResetAllQuestions() {
@@ -536,6 +606,14 @@ export default function BullsRaceAdmin() {
                 </div>
               </div>
 
+              {/* ── Ajout manuel ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 120px auto', gap: 8, marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+                <input className="inp" placeholder="Question..." value={newQuestion} onChange={e => setNewQuestion(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()} />
+                <input className="inp" placeholder="Réponse..." value={newAnswer} onChange={e => setNewAnswer(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()} />
+                <input className="inp" placeholder="Catégorie" value={newCategory} onChange={e => setNewCategory(e.target.value)} />
+                <button className="btn btn-pink" style={{ width: 'auto', padding: '10px 14px', whiteSpace: 'nowrap' }} onClick={handleManualAdd} disabled={!newQuestion.trim() || !newAnswer.trim()}>+ ADD</button>
+              </div>
+
               {questions.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: 'rgba(255,255,255,.1)', fontFamily: 'Share Tech Mono', fontSize: 12, lineHeight: 2.2 }}>
                   Aucune question.<br />Cliquez sur "Générer" pour créer la banque de questions via IA.
@@ -579,14 +657,14 @@ function renderBoardCell(id, players) {
   const BOARD = [
     { id: 0, type: 'start' }, { id: 1, type: 'normal' }, { id: 2, type: 'bonus', value: 2 },
     { id: 3, type: 'normal' }, { id: 4, type: 'normal' }, { id: 5, type: 'trap', value: -2 },
-    { id: 6, type: 'normal' }, { id: 7, type: 'duel' }, { id: 8, type: 'normal' },
+    { id: 6, type: 'normal' }, { id: 7, type: 'wheel' }, { id: 8, type: 'normal' },
     { id: 9, type: 'normal' }, { id: 10, type: 'bonus', value: 2 }, { id: 11, type: 'normal' },
     { id: 12, type: 'trap', value: -3 }, { id: 13, type: 'wheel' }, { id: 14, type: 'joker' },
     { id: 15, type: 'normal' }, { id: 16, type: 'bonus', value: 3 }, { id: 17, type: 'normal' },
     { id: 18, type: 'normal' }, { id: 19, type: 'trap', value: -2 }, { id: 20, type: 'normal' },
-    { id: 21, type: 'duel' }, { id: 22, type: 'normal' }, { id: 23, type: 'bonus', value: 2 },
+    { id: 21, type: 'wheel' }, { id: 22, type: 'normal' }, { id: 23, type: 'bonus', value: 2 },
     { id: 24, type: 'normal' }, { id: 25, type: 'trap', value: -3 }, { id: 26, type: 'joker' },
-    { id: 27, type: 'normal' }, { id: 28, type: 'duel' }, { id: 29, type: 'trap', value: -2 },
+    { id: 27, type: 'normal' }, { id: 28, type: 'wheel' }, { id: 29, type: 'trap', value: -2 },
     { id: 30, type: 'finish' },
   ]
   const CASE_ICONS  = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }

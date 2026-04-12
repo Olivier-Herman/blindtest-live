@@ -8,37 +8,42 @@ const BOARD = [
   { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
   { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
   { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
-  { id: 7,  type: 'duel'   }, { id: 8,  type: 'normal' },
+  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' },
   { id: 9,  type: 'normal' }, { id: 10, type: 'joker'  },
   { id: 11, type: 'normal' },
   { id: 12, type: 'trap',   value: -3 },
   { id: 13, type: 'wheel'  },
   { id: 14, type: 'bonus',  value: 2  },
-  { id: 15, type: 'normal' }, { id: 16, type: 'duel'   },
+  { id: 15, type: 'normal' }, { id: 16, type: 'wheel'  },
   { id: 17, type: 'normal' }, { id: 18, type: 'trap',   value: -2 },
   { id: 19, type: 'normal' },
   { id: 20, type: 'normal' }, { id: 21, type: 'joker'  },
   { id: 22, type: 'normal' },
   { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
   { id: 25, type: 'trap',   value: -2 }, { id: 26, type: 'normal' },
-  { id: 27, type: 'duel'   }, { id: 28, type: 'normal' },
+  { id: 27, type: 'wheel'  }, { id: 28, type: 'normal' },
   { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
 ]
 
 // Positions % sur le canvas (width=1920, height=900)
 // Ligne 1 G→D y=24%, virage droit, Ligne 2 D→G y=52%, virage gauche, Ligne 3 G→D y=80%
 const CIRCUIT_PTS = [
+  // Ligne 1 G->D (cases 0-8)
   { x: 12.5, y: 24 }, { x: 21.5, y: 24 }, { x: 30.5, y: 24 },
   { x: 39.5, y: 24 }, { x: 48.5, y: 24 }, { x: 57.5, y: 24 },
   { x: 66.5, y: 24 }, { x: 75.5, y: 24 }, { x: 84.5, y: 24 },
-  { x: 93.5, y: 34 }, { x: 94.8, y: 46 }, { x: 93.5, y: 56 },
+  // Virage droit (cases 9-11)
+  { x: 93.5, y: 34 }, { x: 95,   y: 46 }, { x: 93.5, y: 58 },
+  // Ligne 2 D->G (cases 12-19)
   { x: 84.5, y: 52 }, { x: 73.5, y: 52 }, { x: 63.5, y: 52 },
   { x: 53.5, y: 52 }, { x: 43.5, y: 52 }, { x: 33.5, y: 52 },
   { x: 23.5, y: 52 }, { x: 12.5, y: 52 },
-  { x: 6,    y: 62 }, { x: 5.2,  y: 74 }, { x: 6,    y: 82 },
-  { x: 12.5, y: 80 }, { x: 24,   y: 80 }, { x: 35.5, y: 80 },
-  { x: 47,   y: 80 }, { x: 58.5, y: 80 }, { x: 70,   y: 80 },
-  { x: 84.5, y: 80 }, { x: 84.5, y: 80 },
+  // Virage gauche (cases 20-22) - bien espacees
+  { x: 5.5,  y: 60 }, { x: 4.5,  y: 71 }, { x: 5.5,  y: 82 },
+  // Ligne 3 G->D (cases 23-30)
+  { x: 14,   y: 80 }, { x: 25,   y: 80 }, { x: 36,   y: 80 },
+  { x: 47,   y: 80 }, { x: 58,   y: 80 }, { x: 69,   y: 80 },
+  { x: 80,   y: 80 }, { x: 84.5, y: 80 },
 ]
 
 const BORDERS = {
@@ -166,7 +171,7 @@ export default function BullsRaceOverlay() {
       const pt = CIRCUIT_PTS[i]
       const cx = px(pt.x), cy = py(pt.y)
       const isSpecial = c.type !== 'normal'
-      const r = (c.type==='start'||c.type==='finish') ? H*0.055 : isSpecial ? H*0.052 : H*0.04
+      const r = (c.type==='start'||c.type==='finish') ? H*0.074 : isSpecial ? H*0.070 : H*0.056
 
       if (isSpecial) {
         ctx.beginPath(); ctx.arc(cx, cy, r+H*0.014, 0, Math.PI*2)
@@ -178,7 +183,7 @@ export default function BullsRaceOverlay() {
       ctx.lineWidth = isSpecial ? 3.5 : 2; ctx.stroke()
 
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-      const fs = H * 0.028
+      const fs = H * 0.038
 
       if (c.type === 'start') {
         ctx.fillStyle = '#ff2d78'; ctx.font = `900 ${fs*0.85}px Arial Black,Arial`
@@ -222,7 +227,7 @@ export default function BullsRaceOverlay() {
       const offsetX = (myIdx - (playersHere.length - 1) / 2) * W * 0.025
       const cx = px(pt.x) + offsetX
       const cy = py(pt.y)
-      const r = H * 0.036
+      const r = H * 0.048
 
       ctx.beginPath(); ctx.arc(cx, cy, r+H*0.012, 0, Math.PI*2)
       ctx.fillStyle = p.color + '33'; ctx.fill()
