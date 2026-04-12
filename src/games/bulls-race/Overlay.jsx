@@ -170,7 +170,7 @@ export default function BullsRaceOverlay() {
       const pt = CIRCUIT_PTS[i]
       const cx = px(pt.x), cy = py(pt.y)
       const isSpecial = c.type !== 'normal'
-      const r = (c.type==='start'||c.type==='finish') ? H*0.065 : isSpecial ? H*0.062 : H*0.048
+      const r = (c.type==='start'||c.type==='finish') ? H*0.082 : isSpecial ? H*0.078 : H*0.062
 
       if (isSpecial) {
         ctx.beginPath(); ctx.arc(cx, cy, r+H*0.014, 0, Math.PI*2)
@@ -182,7 +182,7 @@ export default function BullsRaceOverlay() {
       ctx.lineWidth = isSpecial ? 3.5 : 2; ctx.stroke()
 
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-      const fs = H * 0.034
+      const fs = H * 0.043
 
       if (c.type === 'start') {
         ctx.fillStyle = '#ff2d78'; ctx.font = `900 ${fs*0.85}px Arial Black,Arial`
@@ -226,7 +226,7 @@ export default function BullsRaceOverlay() {
       const offsetX = (myIdx - (playersHere.length - 1) / 2) * W * 0.025
       const cx = px(pt.x) + offsetX
       const cy = py(pt.y)
-      const r = H * 0.042
+      const r = H * 0.054
 
       ctx.beginPath(); ctx.arc(cx, cy, r+H*0.012, 0, Math.PI*2)
       ctx.fillStyle = p.color + '33'; ctx.fill()
