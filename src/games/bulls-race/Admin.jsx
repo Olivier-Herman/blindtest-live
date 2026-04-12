@@ -342,6 +342,8 @@ export default function BullsRaceAdmin() {
   useEffect(() => {
     const canvas = adminCanvasRef.current
     if (!canvas) return
+    // Petit délai pour s'assurer que le canvas est bien rendu
+    const draw = () => {
     const ctx = canvas.getContext('2d')
     const W = canvas.width, H = canvas.height
     ctx.clearRect(0, 0, W, H)
@@ -383,7 +385,11 @@ export default function BullsRaceAdmin() {
         ctx.fillText(p.username.charAt(0).toUpperCase(),cx+ox,cy)
       })
     })
-  }, [players, state])
+    }
+    draw()
+    const t = setTimeout(draw, 150)
+    return () => clearTimeout(t)
+  }, [players, state, tab])
 
   return (
     <div style={{ fontFamily: "'Orbitron', monospace", background: '#07070f', minHeight: '100vh', color: '#fff' }}>
