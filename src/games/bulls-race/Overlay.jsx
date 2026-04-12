@@ -28,22 +28,21 @@ const BOARD = [
 // Positions % sur le canvas (width=1920, height=900)
 // Ligne 1 G→D y=24%, virage droit, Ligne 2 D→G y=52%, virage gauche, Ligne 3 G→D y=80%
 const CIRCUIT_PTS = [
-  // Ligne 1 G->D (cases 0-8)
-  { x: 12.5, y: 24 }, { x: 21.5, y: 24 }, { x: 30.5, y: 24 },
-  { x: 39.5, y: 24 }, { x: 48.5, y: 24 }, { x: 57.5, y: 24 },
-  { x: 66.5, y: 24 }, { x: 75.5, y: 24 }, { x: 84.5, y: 24 },
-  // Virage droit (cases 9-11)
-  { x: 93.5, y: 34 }, { x: 95,   y: 46 }, { x: 93.5, y: 58 },
-  // Ligne 2 D->G (cases 12-19)
-  { x: 84.5, y: 52 }, { x: 73.5, y: 52 }, { x: 63.5, y: 52 },
-  { x: 53.5, y: 52 }, { x: 43.5, y: 52 }, { x: 33.5, y: 52 },
-  { x: 23.5, y: 52 }, { x: 12.5, y: 52 },
-  // Virage gauche (cases 20-22) - bien espacees
-  { x: 5.5,  y: 60 }, { x: 4.5,  y: 71 }, { x: 5.5,  y: 82 },
-  // Ligne 3 G->D (cases 23-30)
-  { x: 14,   y: 80 }, { x: 25,   y: 80 }, { x: 36,   y: 80 },
-  { x: 47,   y: 80 }, { x: 58,   y: 80 }, { x: 69,   y: 80 },
-  { x: 80,   y: 80 }, { x: 84.5, y: 80 },
+  // Ligne 1 G->D (cases 0-8) — 9 cases
+  { x: 9,    y: 22 }, { x: 19,   y: 22 }, { x: 29,   y: 22 },
+  { x: 39,   y: 22 }, { x: 49,   y: 22 }, { x: 59,   y: 22 },
+  { x: 69,   y: 22 }, { x: 79,   y: 22 }, { x: 87,   y: 22 },
+  // Virage droit (cases 9-10) — 2 cases
+  { x: 94,   y: 36 }, { x: 94,   y: 52 },
+  // Ligne 2 D->G (cases 11-18) — 8 cases
+  { x: 87,   y: 64 }, { x: 76,   y: 64 }, { x: 65,   y: 64 },
+  { x: 54,   y: 64 }, { x: 43,   y: 64 }, { x: 32,   y: 64 },
+  { x: 21,   y: 64 }, { x: 10,   y: 64 },
+  // Virage gauche (case 19) — 1 case au centre de la courbe
+  { x: 3.5,  y: 76 },
+  // Ligne 3 G->D (cases 20-25) — 6 cases + arrivée
+  { x: 14,   y: 86 }, { x: 28,   y: 86 }, { x: 43,   y: 86 },
+  { x: 58,   y: 86 }, { x: 73,   y: 86 }, { x: 87,   y: 86 },
 ]
 
 const BORDERS = {
@@ -126,18 +125,18 @@ export default function BullsRaceOverlay() {
 
     const px = x => x / 100 * W
     const py = y => y / 100 * H
-    const Y1 = 24, Y2 = 52, Y3 = 80
-    const XL = 12.5, XR = 84.5
+    const Y1 = 22, Y2 = 64, Y3 = 86
+    const XL = 9, XR = 87
 
     // Piste
     ctx.strokeStyle = 'rgba(255,255,255,0.05)'
-    ctx.lineWidth = H * 0.075
+    ctx.lineWidth = H * 0.08
     ctx.lineJoin = 'round'; ctx.lineCap = 'round'
     ctx.beginPath()
     ctx.moveTo(px(XL), py(Y1)); ctx.lineTo(px(XR), py(Y1))
     ctx.bezierCurveTo(px(XR+12), py(Y1), px(XR+12), py(Y2), px(XR), py(Y2))
     ctx.lineTo(px(XL), py(Y2))
-    ctx.bezierCurveTo(px(XL-12), py(Y2), px(XL-12), py(Y3), px(XL), py(Y3))
+    ctx.bezierCurveTo(px(XL-10), py(Y2), px(XL-10), py(Y3), px(XL+5), py(Y3))
     ctx.lineTo(px(XR), py(Y3))
     ctx.stroke()
 
@@ -149,7 +148,7 @@ export default function BullsRaceOverlay() {
     ctx.moveTo(px(XL), py(Y1)); ctx.lineTo(px(XR), py(Y1))
     ctx.bezierCurveTo(px(XR+12), py(Y1), px(XR+12), py(Y2), px(XR), py(Y2))
     ctx.lineTo(px(XL), py(Y2))
-    ctx.bezierCurveTo(px(XL-12), py(Y2), px(XL-12), py(Y3), px(XL), py(Y3))
+    ctx.bezierCurveTo(px(XL-10), py(Y2), px(XL-10), py(Y3), px(XL+5), py(Y3))
     ctx.lineTo(px(XR), py(Y3))
     ctx.stroke()
     ctx.setLineDash([])
@@ -161,9 +160,9 @@ export default function BullsRaceOverlay() {
       ctx.beginPath(); ctx.moveTo(W*0.012,0); ctx.lineTo(-W*0.008,-H*0.009); ctx.lineTo(-W*0.008,H*0.009); ctx.closePath()
       ctx.fill(); ctx.restore()
     }
-    for(let i=0;i<4;i++) arrow(22+i*17, Y1, 0)
-    for(let i=0;i<4;i++) arrow(79-i*17, Y2, Math.PI)
-    for(let i=0;i<3;i++) arrow(22+i*22, Y3, 0)
+    for(let i=0;i<4;i++) arrow(20+i*19, Y1, 0)
+    for(let i=0;i<4;i++) arrow(80-i*19, Y2, Math.PI)
+    for(let i=0;i<2;i++) arrow(25+i*30, Y3, 0)
 
     // Cases
     BOARD.forEach((c, i) => {
@@ -171,7 +170,7 @@ export default function BullsRaceOverlay() {
       const pt = CIRCUIT_PTS[i]
       const cx = px(pt.x), cy = py(pt.y)
       const isSpecial = c.type !== 'normal'
-      const r = (c.type==='start'||c.type==='finish') ? H*0.074 : isSpecial ? H*0.070 : H*0.056
+      const r = (c.type==='start'||c.type==='finish') ? H*0.065 : isSpecial ? H*0.062 : H*0.048
 
       if (isSpecial) {
         ctx.beginPath(); ctx.arc(cx, cy, r+H*0.014, 0, Math.PI*2)
@@ -183,7 +182,7 @@ export default function BullsRaceOverlay() {
       ctx.lineWidth = isSpecial ? 3.5 : 2; ctx.stroke()
 
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-      const fs = H * 0.038
+      const fs = H * 0.034
 
       if (c.type === 'start') {
         ctx.fillStyle = '#ff2d78'; ctx.font = `900 ${fs*0.85}px Arial Black,Arial`
@@ -227,7 +226,7 @@ export default function BullsRaceOverlay() {
       const offsetX = (myIdx - (playersHere.length - 1) / 2) * W * 0.025
       const cx = px(pt.x) + offsetX
       const cy = py(pt.y)
-      const r = H * 0.048
+      const r = H * 0.042
 
       ctx.beginPath(); ctx.arc(cx, cy, r+H*0.012, 0, Math.PI*2)
       ctx.fillStyle = p.color + '33'; ctx.fill()

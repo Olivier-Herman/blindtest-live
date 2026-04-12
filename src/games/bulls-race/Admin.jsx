@@ -5,20 +5,31 @@ const SESSION_ID = 'bulls-race'
 
 const BOARD = [
   { id: 0,  type: 'start'  },
-  { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
-  { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
-  { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
-  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
-  { id: 10, type: 'bonus',  value: 2  }, { id: 11, type: 'normal' },
-  { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'wheel'  },
-  { id: 14, type: 'joker'  }, { id: 15, type: 'normal' },
-  { id: 16, type: 'bonus',  value: 3  }, { id: 17, type: 'normal' }, { id: 18, type: 'normal' },
-  { id: 19, type: 'trap',   value: -2 }, { id: 20, type: 'normal' },
-  { id: 21, type: 'wheel'  }, { id: 22, type: 'normal' },
-  { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
-  { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
-  { id: 27, type: 'normal' }, { id: 28, type: 'wheel'  },
-  { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
+  { id: 1,  type: 'normal' },
+  { id: 2,  type: 'bonus',  value: 2  },
+  { id: 3,  type: 'normal' },
+  { id: 4,  type: 'wheel'  },
+  { id: 5,  type: 'normal' },
+  { id: 6,  type: 'trap',   value: -2 },
+  { id: 7,  type: 'normal' },
+  { id: 8,  type: 'joker'  },
+  { id: 9,  type: 'normal' },
+  { id: 10, type: 'wheel'  },
+  { id: 11, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 },
+  { id: 13, type: 'wheel'  },
+  { id: 14, type: 'bonus',  value: 2  },
+  { id: 15, type: 'normal' },
+  { id: 16, type: 'wheel'  },
+  { id: 17, type: 'trap',   value: -2 },
+  { id: 18, type: 'normal' },
+  { id: 19, type: 'wheel'  },
+  { id: 20, type: 'bonus',  value: 2  },
+  { id: 21, type: 'normal' },
+  { id: 22, type: 'wheel'  },
+  { id: 23, type: 'trap',   value: -2 },
+  { id: 24, type: 'normal' },
+  { id: 25, type: 'finish' },
 ]
 
 const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', wheel: '🎡', start: '🚀', finish: '🏁' }
@@ -537,11 +548,11 @@ export default function BullsRaceAdmin() {
             <div className="card">
               <span className="label">🗺 plateau — 30 cases</span>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4, marginBottom: 10 }}>
-                {[25,26,27,28,29,30].map(id => renderBoardCell(id, players))}
-                {[24,23,22,21,20,19].map(id => renderBoardCell(id, players))}
-                {[13,14,15,16,17,18].map(id => renderBoardCell(id, players))}
-                {[12,11,10,9,8,7].map(id => renderBoardCell(id, players))}
-                {[1,2,3,4,5,6].map(id => renderBoardCell(id, players))}
+                {[20,21,22,23,24,25].map(id => renderBoardCell(id, players))}
+                {[19,18,17,16,15,14].map(id => renderBoardCell(id, players))}
+                {[8,9,10,11,12,13].map(id => renderBoardCell(id, players))}
+                {[7,6,5,4,3,2].map(id => renderBoardCell(id, players))}
+                {[0,1].map(id => renderBoardCell(id, players))}
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 8 }}>
                 {[['bonus','⭐ Bonus'],['trap','💀 Piège'],['duel','⚔️ Duel'],['joker','🃏 Joker'],['wheel','🎡 Mystère']].map(([type, label]) => (
@@ -655,18 +666,33 @@ function formatEffect(e) {
 
 function renderBoardCell(id, players) {
   const BOARD = [
-    { id: 0, type: 'start' }, { id: 1, type: 'normal' }, { id: 2, type: 'bonus', value: 2 },
-    { id: 3, type: 'normal' }, { id: 4, type: 'normal' }, { id: 5, type: 'trap', value: -2 },
-    { id: 6, type: 'normal' }, { id: 7, type: 'wheel' }, { id: 8, type: 'normal' },
-    { id: 9, type: 'normal' }, { id: 10, type: 'bonus', value: 2 }, { id: 11, type: 'normal' },
-    { id: 12, type: 'trap', value: -3 }, { id: 13, type: 'wheel' }, { id: 14, type: 'joker' },
-    { id: 15, type: 'normal' }, { id: 16, type: 'bonus', value: 3 }, { id: 17, type: 'normal' },
-    { id: 18, type: 'normal' }, { id: 19, type: 'trap', value: -2 }, { id: 20, type: 'normal' },
-    { id: 21, type: 'wheel' }, { id: 22, type: 'normal' }, { id: 23, type: 'bonus', value: 2 },
-    { id: 24, type: 'normal' }, { id: 25, type: 'trap', value: -3 }, { id: 26, type: 'joker' },
-    { id: 27, type: 'normal' }, { id: 28, type: 'wheel' }, { id: 29, type: 'trap', value: -2 },
-    { id: 30, type: 'finish' },
-  ]
+  { id: 0,  type: 'start'  },
+  { id: 1,  type: 'normal' },
+  { id: 2,  type: 'bonus',  value: 2  },
+  { id: 3,  type: 'normal' },
+  { id: 4,  type: 'wheel'  },
+  { id: 5,  type: 'normal' },
+  { id: 6,  type: 'trap',   value: -2 },
+  { id: 7,  type: 'normal' },
+  { id: 8,  type: 'joker'  },
+  { id: 9,  type: 'normal' },
+  { id: 10, type: 'wheel'  },
+  { id: 11, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 },
+  { id: 13, type: 'wheel'  },
+  { id: 14, type: 'bonus',  value: 2  },
+  { id: 15, type: 'normal' },
+  { id: 16, type: 'wheel'  },
+  { id: 17, type: 'trap',   value: -2 },
+  { id: 18, type: 'normal' },
+  { id: 19, type: 'wheel'  },
+  { id: 20, type: 'bonus',  value: 2  },
+  { id: 21, type: 'normal' },
+  { id: 22, type: 'wheel'  },
+  { id: 23, type: 'trap',   value: -2 },
+  { id: 24, type: 'normal' },
+  { id: 25, type: 'finish' },
+]
   const CASE_ICONS  = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }
   const CASE_COLORS = { normal: 'rgba(255,255,255,.05)', bonus: 'rgba(255,215,0,.15)', trap: 'rgba(255,60,60,.15)', duel: 'rgba(123,47,255,.2)', joker: 'rgba(0,245,255,.15)', finish: 'rgba(200,169,110,.25)' }
   const c = BOARD[id]
