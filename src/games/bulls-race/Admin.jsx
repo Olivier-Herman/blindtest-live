@@ -1,64 +1,39 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const SESSION_ID = 'bulls-race'
 
 const BOARD = [
   { id: 0,  type: 'start'  },
-  { id: 1,  type: 'normal' },
-  { id: 2,  type: 'bonus',  value: 2  },
-  { id: 3,  type: 'normal' },
-  { id: 4,  type: 'wheel'  },
-  { id: 5,  type: 'normal' },
-  { id: 6,  type: 'trap',   value: -2 },
-  { id: 7,  type: 'normal' },
-  { id: 8,  type: 'joker'  },
-  { id: 9,  type: 'normal' },
-  { id: 10, type: 'wheel'  },
-  { id: 11, type: 'normal' },
-  { id: 12, type: 'trap',   value: -3 },
-  { id: 13, type: 'wheel'  },
-  { id: 14, type: 'bonus',  value: 2  },
-  { id: 15, type: 'normal' },
-  { id: 16, type: 'wheel'  },
-  { id: 17, type: 'trap',   value: -2 },
-  { id: 18, type: 'normal' },
-  { id: 19, type: 'wheel'  },
-  { id: 20, type: 'bonus',  value: 2  },
-  { id: 21, type: 'normal' },
-  { id: 22, type: 'wheel'  },
-  { id: 23, type: 'trap',   value: -2 },
-  { id: 24, type: 'normal' },
-  { id: 25, type: 'finish' },
+  { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
+  { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
+  { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
+  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
+  { id: 10, type: 'bonus',  value: 2  }, { id: 11, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'wheel'  },
+  { id: 14, type: 'joker'  }, { id: 15, type: 'normal' },
+  { id: 16, type: 'bonus',  value: 3  }, { id: 17, type: 'normal' }, { id: 18, type: 'normal' },
+  { id: 19, type: 'trap',   value: -2 }, { id: 20, type: 'normal' },
+  { id: 21, type: 'wheel'  }, { id: 22, type: 'normal' },
+  { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
+  { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
+  { id: 27, type: 'normal' }, { id: 28, type: 'wheel'  },
+  { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
 ]
+
+const CIRCUIT_PTS = [
+  {x:9,y:22},{x:19,y:22},{x:29,y:22},{x:39,y:22},{x:49,y:22},
+  {x:59,y:22},{x:69,y:22},{x:79,y:22},{x:87,y:22},
+  {x:94,y:36},{x:94,y:52},
+  {x:87,y:64},{x:76,y:64},{x:65,y:64},{x:54,y:64},
+  {x:43,y:64},{x:32,y:64},{x:21,y:64},{x:10,y:64},
+  {x:3.5,y:76},
+  {x:14,y:86},{x:28,y:86},{x:43,y:86},{x:58,y:86},{x:73,y:86},{x:87,y:86},
+]
+const BC={start:'#ff2d78',normal:'rgba(255,255,255,0.5)',bonus:'#ffd700',trap:'#ff3860',duel:'#7b2fff',joker:'#00f5ff',wheel:'#a855f7',finish:'#c8a96e'}
+const BF={start:'rgba(255,45,120,0.3)',normal:'rgba(255,255,255,0.06)',bonus:'rgba(255,215,0,0.2)',trap:'rgba(255,60,60,0.2)',duel:'rgba(123,47,255,0.25)',joker:'rgba(0,245,255,0.2)',wheel:'rgba(168,85,247,0.25)',finish:'rgba(200,169,110,0.35)'}
 
 const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', wheel: '🎡', start: '🚀', finish: '🏁' }
-const CIRCUIT_PTS = [
-  { x: 9,    y: 22 }, { x: 19,   y: 22 }, { x: 29,   y: 22 },
-  { x: 39,   y: 22 }, { x: 49,   y: 22 }, { x: 59,   y: 22 },
-  { x: 69,   y: 22 }, { x: 79,   y: 22 }, { x: 87,   y: 22 },
-  { x: 94,   y: 36 }, { x: 94,   y: 52 },
-  { x: 87,   y: 64 }, { x: 76,   y: 64 }, { x: 65,   y: 64 },
-  { x: 54,   y: 64 }, { x: 43,   y: 64 }, { x: 32,   y: 64 },
-  { x: 21,   y: 64 }, { x: 10,   y: 64 },
-  { x: 3.5,  y: 76 },
-  { x: 14,   y: 86 }, { x: 28,   y: 86 }, { x: 43,   y: 86 },
-  { x: 58,   y: 86 }, { x: 73,   y: 86 }, { x: 87,   y: 86 },
-]
-
-const BORDERS_CANVAS = {
-  start: '#ff2d78', normal: 'rgba(255,255,255,0.5)',
-  bonus: '#ffd700', trap: '#ff3860',
-  duel: '#7b2fff', joker: '#00f5ff',
-  wheel: '#a855f7', finish: '#c8a96e',
-}
-const FILLS_CANVAS = {
-  start: 'rgba(255,45,120,0.3)', normal: 'rgba(255,255,255,0.06)',
-  bonus: 'rgba(255,215,0,0.2)', trap: 'rgba(255,60,60,0.2)',
-  duel: 'rgba(123,47,255,0.25)', joker: 'rgba(0,245,255,0.2)',
-  wheel: 'rgba(168,85,247,0.25)', finish: 'rgba(200,169,110,0.35)',
-}
-
 const CASE_COLORS = { normal: 'rgba(255,255,255,.08)', bonus: 'rgba(255,215,0,.2)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.2)', wheel: 'rgba(168,85,247,.25)', start: 'rgba(255,255,255,.05)', finish: 'rgba(200,169,110,.3)' }
 
 export default function BullsRaceAdmin() {
@@ -71,6 +46,7 @@ export default function BullsRaceAdmin() {
   const [generating, setGenerating] = useState(false)
   const [timer,      setTimer]      = useState(30)
   const timerRef = useRef(null)
+  const adminCanvasRef = useRef(null)
   const [log,        setLog]        = useState([])
 
   useEffect(() => {
@@ -159,92 +135,6 @@ export default function BullsRaceAdmin() {
     } catch (e) { alert('Erreur réseau') }
     setGenerating(false)
   }
-
-  useEffect(() => {
-    const canvas = adminCanvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    const W = canvas.width, H = canvas.height
-    ctx.clearRect(0, 0, W, H)
-    ctx.fillStyle = '#07070f'
-    ctx.fillRect(0, 0, W, H)
-
-    const px = x => x / 100 * W
-    const py = y => y / 100 * H
-    const Y1 = 22, Y2 = 64, Y3 = 86
-    const XL = 9, XR = 87
-
-    // Piste
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)'
-    ctx.lineWidth = H * 0.1
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.moveTo(px(XL), py(Y1)); ctx.lineTo(px(XR), py(Y1))
-    ctx.bezierCurveTo(px(XR+12), py(Y1), px(XR+12), py(Y2), px(XR), py(Y2))
-    ctx.lineTo(px(XL), py(Y2))
-    ctx.bezierCurveTo(px(XL-10), py(Y2), px(XL-10), py(Y3), px(XL+5), py(Y3))
-    ctx.lineTo(px(XR), py(Y3))
-    ctx.stroke()
-
-    // Cases
-    BOARD.forEach((c, i) => {
-      if (i >= CIRCUIT_PTS.length) return
-      const pt = CIRCUIT_PTS[i]
-      const cx = px(pt.x), cy = py(pt.y)
-      const isSpecial = c.type !== 'normal'
-      const r = (c.type==='start'||c.type==='finish') ? H*0.085 : isSpecial ? H*0.08 : H*0.065
-
-      if (isSpecial) {
-        ctx.beginPath(); ctx.arc(cx, cy, r+H*0.015, 0, Math.PI*2)
-        ctx.fillStyle = FILLS_CANVAS[c.type]; ctx.fill()
-      }
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2)
-      ctx.fillStyle = '#0f0f1e'; ctx.fill()
-      ctx.strokeStyle = BORDERS_CANVAS[c.type]
-      ctx.lineWidth = isSpecial ? 3 : 1.5; ctx.stroke()
-
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-      const fs = H * 0.045
-      if (c.type === 'start') {
-        ctx.fillStyle = '#ff2d78'; ctx.font = `900 ${fs*0.75}px Arial Black,Arial`
-        ctx.fillText('GO', cx, cy)
-      } else if (c.type === 'finish') {
-        ctx.fillStyle = '#ffd700'; ctx.font = `900 ${fs*0.7}px Arial Black,Arial`
-        ctx.fillText('FIN', cx, cy)
-      } else if (c.type === 'normal') {
-        ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = `700 ${fs*0.6}px Arial`
-        ctx.fillText(i, cx, cy)
-      } else if (c.type === 'bonus') {
-        ctx.fillStyle = '#ffd700'
-        ctx.font = `900 ${fs*0.75}px Arial Black,Arial`; ctx.fillText('+'+c.value, cx, cy-r*0.22)
-        ctx.font = `${fs*0.55}px Arial`; ctx.fillText('★', cx, cy+r*0.4)
-      } else if (c.type === 'trap') {
-        ctx.fillStyle = '#ff3860'
-        ctx.font = `900 ${fs*0.75}px Arial Black,Arial`; ctx.fillText(c.value, cx, cy-r*0.22)
-        ctx.font = `${fs*0.55}px Arial`; ctx.fillText('☠', cx, cy+r*0.4)
-      } else if (c.type === 'joker') {
-        ctx.fillStyle = '#00f5ff'
-        ctx.font = `900 ${fs*0.5}px Arial Black,Arial`; ctx.fillText('JOKER', cx, cy-r*0.25)
-        ctx.font = `${fs*0.6}px Arial`; ctx.fillText('J', cx, cy+r*0.38)
-      } else if (c.type === 'wheel') {
-        ctx.fillStyle = '#a855f7'
-        ctx.font = `900 ${fs*0.45}px Arial Black,Arial`; ctx.fillText('MYST.', cx, cy-r*0.25)
-        ctx.font = `${fs*0.65}px Arial`; ctx.fillText('🎡', cx, cy+r*0.38)
-      }
-
-      // Pions sur cette case
-      const here = players.filter(p => p.position === c.id)
-      here.forEach((p, pi) => {
-        const offsetX = (pi - (here.length-1)/2) * r * 0.6
-        const pr = r * 0.38
-        ctx.beginPath(); ctx.arc(cx+offsetX, cy, pr, 0, Math.PI*2)
-        ctx.fillStyle = p.color; ctx.fill()
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke()
-        ctx.fillStyle = '#000'; ctx.font = `900 ${pr*0.9}px Arial`
-        ctx.fillText(p.username.charAt(0).toUpperCase(), cx+offsetX, cy)
-      })
-    })
-  }, [players, state])
 
   async function handleOpenRegistration() {
     await supabase.from('race_state').update({ status: 'waiting', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
@@ -339,76 +229,6 @@ export default function BullsRaceAdmin() {
     loadQuestions()
   }
 
-  const [newQuestion, setNewQuestion] = useState('')
-  const [newAnswer,   setNewAnswer]   = useState('')
-  const [newCategory, setNewCategory] = useState('général')
-
-  async function handleManualAdd() {
-    if (!newQuestion.trim() || !newAnswer.trim()) return
-    const row = {
-      session_id: SESSION_ID,
-      question: newQuestion.trim(),
-      answer: newAnswer.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(),
-      category: newCategory.trim() || 'général',
-      used: false,
-      position: questions.length
-    }
-    await supabase.from('race_questions').insert(row)
-    setNewQuestion(''); setNewAnswer('')
-    await loadQuestions()
-  }
-
-  async function handleCSVImport(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    const text = await file.text()
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
-    const rows = []
-    for (const line of lines) {
-      const sep = line.includes(';') ? ';' : ','
-      const parts = line.split(sep).map(p => p.trim().replace(/^"|"$/g, ''))
-      if (parts.length < 2) continue
-      const question = parts[0]
-      const answer   = parts[1]
-      const category = parts[2] || 'général'
-      if (!question || !answer || question.toLowerCase() === 'question') continue
-      rows.push({ session_id: SESSION_ID, question, answer: answer.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(), category, used: false, position: questions.length + rows.length })
-    }
-    if (rows.length === 0) return alert('Aucune question valide')
-    await supabase.from('race_questions').insert(rows)
-    await loadQuestions()
-    alert(`✅ ${rows.length} questions importées !`)
-    e.target.value = ''
-  }
-
-  async function handleExcelImport(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    try {
-      const script = document.createElement('script')
-      script.src = 'https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js'
-      await new Promise((res, rej) => { script.onload = res; script.onerror = rej; document.head.appendChild(script) })
-      const XLSX = window.XLSX
-      const data = await file.arrayBuffer()
-      const wb = XLSX.read(data)
-      const ws = wb.Sheets[wb.SheetNames[0]]
-      const json = XLSX.utils.sheet_to_json(ws, { header: 1 })
-      const rows = []
-      for (const row of json) {
-        const question = String(row[0] || '').trim()
-        const answer   = String(row[1] || '').trim()
-        const category = String(row[2] || 'général').trim()
-        if (!question || !answer || question.toLowerCase() === 'question') continue
-        rows.push({ session_id: SESSION_ID, question, answer: answer.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, '').trim(), category, used: false, position: questions.length + rows.length })
-      }
-      if (rows.length === 0) return alert('Aucune question valide')
-      await supabase.from('race_questions').insert(rows)
-      await loadQuestions()
-      alert(`✅ ${rows.length} questions importées !`)
-    } catch(err) { alert('Erreur Excel : ' + err.message) }
-    e.target.value = ''
-  }
-
   async function handleResetAllQuestions() {
     if (!confirm('Remettre toutes les questions en disponible ?')) return
     await supabase.from('race_questions').update({ used: false }).eq('session_id', SESSION_ID).eq('used', true)
@@ -453,6 +273,52 @@ export default function BullsRaceAdmin() {
   const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', duel_result: '#ff8c00', wheel: '#a855f7', wheel_result: '#a855f7', finished: '#c8a96e', rules: '#b388ff' }
   const statusLabel = { idle: '⏸ STANDBY', waiting: '👥 INSCRIPTIONS', playing: '🔴 EN DIRECT', revealed: '✅ RÉVÉLÉ', duel: '⚔️ DUEL', duel_result: '⚔️ RÉSULTAT DUEL', wheel: '🎡 ROUE', wheel_result: '🎡 RÉSULTAT ROUE', finished: '🏆 TERMINÉ', rules: '🔊 RÈGLES' }
   const unusedCount = questions.filter(q => !q.used).length
+
+  useEffect(() => {
+    const canvas = adminCanvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const W = canvas.width, H = canvas.height
+    ctx.clearRect(0, 0, W, H)
+    ctx.fillStyle = '#07070f'; ctx.fillRect(0, 0, W, H)
+    const px = x => x/100*W, py = y => y/100*H
+    const Y1=22, Y2=64, Y3=86, XL=9, XR=87
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = H*0.1
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(px(XL),py(Y1)); ctx.lineTo(px(XR),py(Y1))
+    ctx.bezierCurveTo(px(XR+12),py(Y1),px(XR+12),py(Y2),px(XR),py(Y2))
+    ctx.lineTo(px(XL),py(Y2))
+    ctx.bezierCurveTo(px(XL-10),py(Y2),px(XL-10),py(Y3),px(XL+5),py(Y3))
+    ctx.lineTo(px(XR),py(Y3))
+    ctx.stroke()
+    BOARD.forEach((c, i) => {
+      if (i >= CIRCUIT_PTS.length) return
+      const pt = CIRCUIT_PTS[i], cx = px(pt.x), cy = py(pt.y)
+      const isS = c.type !== 'normal'
+      const r = (c.type==='start'||c.type==='finish') ? H*0.085 : isS ? H*0.08 : H*0.065
+      if (isS) { ctx.beginPath(); ctx.arc(cx,cy,r+H*0.015,0,Math.PI*2); ctx.fillStyle=BF[c.type]; ctx.fill() }
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle='#0f0f1e'; ctx.fill()
+      ctx.strokeStyle = BC[c.type]; ctx.lineWidth = isS ? 3 : 1.5; ctx.stroke()
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+      const fs = H*0.045
+      if (c.type==='start') { ctx.fillStyle='#ff2d78'; ctx.font=`900 ${fs*.75}px Arial Black,Arial`; ctx.fillText('GO',cx,cy) }
+      else if (c.type==='finish') { ctx.fillStyle='#ffd700'; ctx.font=`900 ${fs*.7}px Arial Black,Arial`; ctx.fillText('FIN',cx,cy) }
+      else if (c.type==='normal') { ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font=`700 ${fs*.6}px Arial`; ctx.fillText(i,cx,cy) }
+      else if (c.type==='bonus') { ctx.fillStyle='#ffd700'; ctx.font=`900 ${fs*.75}px Arial Black,Arial`; ctx.fillText('+'+c.value,cx,cy-r*.22); ctx.font=`${fs*.55}px Arial`; ctx.fillText('★',cx,cy+r*.4) }
+      else if (c.type==='trap') { ctx.fillStyle='#ff3860'; ctx.font=`900 ${fs*.75}px Arial Black,Arial`; ctx.fillText(c.value,cx,cy-r*.22); ctx.font=`${fs*.55}px Arial`; ctx.fillText('☠',cx,cy+r*.4) }
+      else if (c.type==='joker') { ctx.fillStyle='#00f5ff'; ctx.font=`900 ${fs*.5}px Arial Black,Arial`; ctx.fillText('JOKER',cx,cy-r*.25); ctx.font=`${fs*.6}px Arial`; ctx.fillText('J',cx,cy+r*.38) }
+      else if (c.type==='wheel') { ctx.fillStyle='#a855f7'; ctx.font=`900 ${fs*.45}px Arial Black,Arial`; ctx.fillText('MYST.',cx,cy-r*.25); ctx.font=`${fs*.65}px Arial`; ctx.fillText('🎡',cx,cy+r*.38) }
+      const here = players.filter(p => p.position === c.id)
+      here.forEach((p, pi) => {
+        const ox = (pi-(here.length-1)/2)*r*.6, pr = r*.38
+        ctx.beginPath(); ctx.arc(cx+ox,cy,pr,0,Math.PI*2); ctx.fillStyle=p.color; ctx.fill()
+        ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke()
+        ctx.fillStyle='#000'; ctx.font=`900 ${pr*.9}px Arial`
+        ctx.fillText(p.username.charAt(0).toUpperCase(),cx+ox,cy)
+      })
+    })
+  }, [players, state])
 
   return (
     <div style={{ fontFamily: "'Orbitron', monospace", background: '#07070f', minHeight: '100vh', color: '#fff' }}>
@@ -521,7 +387,7 @@ export default function BullsRaceAdmin() {
 
         {/* ═══ CONTRÔLE ═══ */}
         {tab === 'control' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr 300px', gap: 14, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '230px 1fr', gap: 14, alignItems: 'start' }}>
 
             {/* ── Colonne gauche : Actions + Question ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -656,51 +522,53 @@ export default function BullsRaceAdmin() {
               </div>
             </div>
 
-            {/* ── Colonne centrale : Circuit ── */}
-            <div className="card" style={{ padding: 8 }}>
-              <span className="label" style={{ marginBottom: 6 }}>🗺 plateau — 25 cases</span>
-              <canvas ref={adminCanvasRef} width={900} height={400}
-                style={{ width: '100%', borderRadius: 8, display: 'block' }} />
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
-                {[['bonus','⭐ Bonus'],['trap','💀 Piège'],['joker','🃏 Joker'],['wheel','🎡 Mystère'],['finish','🏁 Arrivée']].map(([type, label]) => (
-                  <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: CASE_COLORS[type] }} />
-                    {label}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ── Colonne droite : Joueurs ── */}
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <span className="label" style={{ marginBottom: 0 }}>👥 joueurs ({players.length}/10)</span>
-                <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono' }}>{unusedCount} Q restantes</span>
-              </div>
-              {players.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '30px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 11 }}>
-                  Aucun joueur<br />tapent !join
-                </div>
-              ) : players.map((p, i) => (
-                <div key={p.id} className="player-row">
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: p.color, flexShrink: 0, boxShadow: `0 0 6px ${p.color}` }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}@{p.username}
-                      {p.is_blocked && <span style={{ marginLeft: 5, fontSize: 9, color: '#ff2d78' }}>🔒</span>}
+            {/* ── Colonne droite : Circuit + Joueurs ── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="card" style={{ padding: 10 }}>
+                <span className="label" style={{ marginBottom: 6 }}>🗺 plateau — 25 cases</span>
+                <canvas ref={adminCanvasRef} width={1800} height={750}
+                  style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
+                  {[['bonus','⭐ Bonus'],['trap','💀 Piège'],['joker','🃏 Joker'],['wheel','🎡 Mystère'],['finish','🏁 Arrivée']].map(([type, label]) => (
+                    <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(255,255,255,.6)', fontFamily: 'Share Tech Mono' }}>
+                      <div style={{ width: 12, height: 12, borderRadius: '50%', background: CASE_COLORS[type] }} />
+                      {label}
                     </div>
-                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 2 }}>
-                      Case {p.position}/30 — {CASE_ICONS[BOARD[p.position]?.type || 'normal']} {BOARD[p.position]?.type}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 3, alignItems: 'center', flexShrink: 0 }}>
-                    <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, -1)}>−</button>
-                    <span style={{ fontSize: 12, fontWeight: 900, color: p.color, minWidth: 22, textAlign: 'center' }}>{p.position}</span>
-                    <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, 1)}>+</button>
-                    <button className="mini-btn" style={{ borderColor: 'rgba(255,60,60,.3)', color: 'rgba(255,60,60,.5)' }} onClick={() => handleRemovePlayer(p.id)}>✕</button>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              <div className="card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span className="label" style={{ marginBottom: 0 }}>👥 joueurs ({players.length}/10)</span>
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono' }}>{unusedCount} Q restantes</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
+                  {players.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '16px 0', color: 'rgba(255,255,255,.15)', fontFamily: 'Share Tech Mono', fontSize: 11, gridColumn: 'span 2' }}>
+                      Aucun joueur — tapent !join
+                    </div>
+                  ) : players.map((p, i) => (
+                    <div key={p.id} className="player-row">
+                      <div style={{ width: 9, height: 9, borderRadius: '50%', background: p.color, flexShrink: 0, boxShadow: `0 0 5px ${p.color}` }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : ''}@{p.username}
+                          {p.is_blocked && <span style={{ marginLeft: 4, fontSize: 9, color: '#ff2d78' }}>🔒</span>}
+                        </div>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'Share Tech Mono', marginTop: 1 }}>
+                          c.{p.position} — {CASE_ICONS[BOARD[p.position]?.type || 'normal']}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 3, alignItems: 'center', flexShrink: 0 }}>
+                        <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, -1)}>−</button>
+                        <span style={{ fontSize: 12, fontWeight: 900, color: p.color, minWidth: 20, textAlign: 'center' }}>{p.position}</span>
+                        <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, 1)}>+</button>
+                        <button className="mini-btn" style={{ borderColor: 'rgba(255,60,60,.3)', color: 'rgba(255,60,60,.5)' }} onClick={() => handleRemovePlayer(p.id)}>✕</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -722,14 +590,6 @@ export default function BullsRaceAdmin() {
                     {generating ? '⏳ GÉNÉRATION...' : '🤖 GÉNÉRER 40 QUESTIONS'}
                   </button>
                 </div>
-              </div>
-
-              {/* ── Ajout manuel ── */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 120px auto', gap: 8, marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                <input className="inp" placeholder="Question..." value={newQuestion} onChange={e => setNewQuestion(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()} />
-                <input className="inp" placeholder="Réponse..." value={newAnswer} onChange={e => setNewAnswer(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()} />
-                <input className="inp" placeholder="Catégorie" value={newCategory} onChange={e => setNewCategory(e.target.value)} />
-                <button className="btn btn-pink" style={{ width: 'auto', padding: '10px 14px', whiteSpace: 'nowrap' }} onClick={handleManualAdd} disabled={!newQuestion.trim() || !newAnswer.trim()}>+ ADD</button>
               </div>
 
               {questions.length === 0 ? (
@@ -773,61 +633,20 @@ function formatEffect(e) {
 
 function renderBoardCell(id, players) {
   const BOARD = [
-  { id: 0,  type: 'start'  },
-  { id: 1,  type: 'normal' },
-  { id: 2,  type: 'bonus',  value: 2  },
-  { id: 3,  type: 'normal' },
-  { id: 4,  type: 'wheel'  },
-  { id: 5,  type: 'normal' },
-  { id: 6,  type: 'trap',   value: -2 },
-  { id: 7,  type: 'normal' },
-  { id: 8,  type: 'joker'  },
-  { id: 9,  type: 'normal' },
-  { id: 10, type: 'wheel'  },
-  { id: 11, type: 'normal' },
-  { id: 12, type: 'trap',   value: -3 },
-  { id: 13, type: 'wheel'  },
-  { id: 14, type: 'bonus',  value: 2  },
-  { id: 15, type: 'normal' },
-  { id: 16, type: 'wheel'  },
-  { id: 17, type: 'trap',   value: -2 },
-  { id: 18, type: 'normal' },
-  { id: 19, type: 'wheel'  },
-  { id: 20, type: 'bonus',  value: 2  },
-  { id: 21, type: 'normal' },
-  { id: 22, type: 'wheel'  },
-  { id: 23, type: 'trap',   value: -2 },
-  { id: 24, type: 'normal' },
-  { id: 25, type: 'finish' },
-]
+    { id: 0, type: 'start' }, { id: 1, type: 'normal' }, { id: 2, type: 'bonus', value: 2 },
+    { id: 3, type: 'normal' }, { id: 4, type: 'normal' }, { id: 5, type: 'trap', value: -2 },
+    { id: 6, type: 'normal' }, { id: 7, type: 'wheel' }, { id: 8, type: 'normal' },
+    { id: 9, type: 'normal' }, { id: 10, type: 'bonus', value: 2 }, { id: 11, type: 'normal' },
+    { id: 12, type: 'trap', value: -3 }, { id: 13, type: 'wheel' }, { id: 14, type: 'joker' },
+    { id: 15, type: 'normal' }, { id: 16, type: 'bonus', value: 3 }, { id: 17, type: 'normal' },
+    { id: 18, type: 'normal' }, { id: 19, type: 'trap', value: -2 }, { id: 20, type: 'normal' },
+    { id: 21, type: 'wheel' }, { id: 22, type: 'normal' }, { id: 23, type: 'bonus', value: 2 },
+    { id: 24, type: 'normal' }, { id: 25, type: 'trap', value: -3 }, { id: 26, type: 'joker' },
+    { id: 27, type: 'normal' }, { id: 28, type: 'wheel' }, { id: 29, type: 'trap', value: -2 },
+    { id: 30, type: 'finish' },
+  ]
   const CASE_ICONS  = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }
-  const CIRCUIT_PTS = [
-  { x: 9,    y: 22 }, { x: 19,   y: 22 }, { x: 29,   y: 22 },
-  { x: 39,   y: 22 }, { x: 49,   y: 22 }, { x: 59,   y: 22 },
-  { x: 69,   y: 22 }, { x: 79,   y: 22 }, { x: 87,   y: 22 },
-  { x: 94,   y: 36 }, { x: 94,   y: 52 },
-  { x: 87,   y: 64 }, { x: 76,   y: 64 }, { x: 65,   y: 64 },
-  { x: 54,   y: 64 }, { x: 43,   y: 64 }, { x: 32,   y: 64 },
-  { x: 21,   y: 64 }, { x: 10,   y: 64 },
-  { x: 3.5,  y: 76 },
-  { x: 14,   y: 86 }, { x: 28,   y: 86 }, { x: 43,   y: 86 },
-  { x: 58,   y: 86 }, { x: 73,   y: 86 }, { x: 87,   y: 86 },
-]
-
-const BORDERS_CANVAS = {
-  start: '#ff2d78', normal: 'rgba(255,255,255,0.5)',
-  bonus: '#ffd700', trap: '#ff3860',
-  duel: '#7b2fff', joker: '#00f5ff',
-  wheel: '#a855f7', finish: '#c8a96e',
-}
-const FILLS_CANVAS = {
-  start: 'rgba(255,45,120,0.3)', normal: 'rgba(255,255,255,0.06)',
-  bonus: 'rgba(255,215,0,0.2)', trap: 'rgba(255,60,60,0.2)',
-  duel: 'rgba(123,47,255,0.25)', joker: 'rgba(0,245,255,0.2)',
-  wheel: 'rgba(168,85,247,0.25)', finish: 'rgba(200,169,110,0.35)',
-}
-
-const CASE_COLORS = { normal: 'rgba(255,255,255,.05)', bonus: 'rgba(255,215,0,.15)', trap: 'rgba(255,60,60,.15)', duel: 'rgba(123,47,255,.2)', joker: 'rgba(0,245,255,.15)', finish: 'rgba(200,169,110,.25)' }
+  const CASE_COLORS = { normal: 'rgba(255,255,255,.05)', bonus: 'rgba(255,215,0,.15)', trap: 'rgba(255,60,60,.15)', duel: 'rgba(123,47,255,.2)', joker: 'rgba(0,245,255,.15)', finish: 'rgba(200,169,110,.25)' }
   const c = BOARD[id]
   const playersHere = players.filter(p => p.position === id)
   return (
