@@ -36,7 +36,7 @@ const BOARD = [
   { id: 20, type: 'bonus',  value: 2  },
   { id: 21, type: 'normal' },
   { id: 22, type: 'wheel'  },
-  { id: 23, type: 'trap',   value: -2 },
+  { id: 23, type: 'wheel'  },
   { id: 24, type: 'normal' },
   { id: 25, type: 'finish' },
 ]
