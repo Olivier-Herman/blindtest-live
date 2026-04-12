@@ -124,6 +124,78 @@ export default function BullsRaceAdmin() {
     }
   }
 
+  const [newQuestion, setNewQuestion] = useState('')
+  const [newAnswer,   setNewAnswer]   = useState('')
+  const [newCategory, setNewCategory] = useState('général')
+
+  async function handleManualAdd() {
+    if (!newQuestion.trim() || !newAnswer.trim()) return
+    const row = {
+      session_id: SESSION_ID,
+      question: newQuestion.trim(),
+      answer: newAnswer.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '').trim(),
+      category: newCategory.trim() || 'général',
+      used: false,
+      position: questions.length
+    }
+    await supabase.from('race_questions').insert(row)
+    setNewQuestion(''); setNewAnswer('')
+    await loadQuestions()
+  }
+
+  async function handleCSVImport(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const text = await file.text()
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean)
+    const rows = []
+    for (const line of lines) {
+      const sep = line.includes(';') ? ';' : ','
+      const parts = line.split(sep).map(p => p.trim().replace(/^"|"$/g, ''))
+      if (parts.length < 2) continue
+      const question = parts[0], answer = parts[1], category = parts[2] || 'général'
+      if (!question || !answer || question.toLowerCase() === 'question') continue
+      rows.push({ session_id: SESSION_ID, question, answer: answer.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '').trim(), category, used: false, position: questions.length + rows.length })
+    }
+    if (rows.length === 0) return alert('Aucune question valide')
+    await supabase.from('race_questions').insert(rows)
+    await loadQuestions()
+    alert(`✅ ${rows.length} questions importées !`)
+    e.target.value = ''
+  }
+
+  async function handleExcelImport(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    try {
+      if (!window.XLSX) {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script')
+          s.src = 'https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js'
+          s.onload = res; s.onerror = rej
+          document.head.appendChild(s)
+        })
+      }
+      const data = await file.arrayBuffer()
+      const wb = window.XLSX.read(data)
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const json = window.XLSX.utils.sheet_to_json(ws, { header: 1 })
+      const rows = []
+      for (const row of json) {
+        const question = String(row[0] || '').trim()
+        const answer   = String(row[1] || '').trim()
+        const category = String(row[2] || 'général').trim()
+        if (!question || !answer || question.toLowerCase() === 'question') continue
+        rows.push({ session_id: SESSION_ID, question, answer: answer.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '').trim(), category, used: false, position: questions.length + rows.length })
+      }
+      if (rows.length === 0) return alert('Aucune question valide')
+      await supabase.from('race_questions').insert(rows)
+      await loadQuestions()
+      alert(`✅ ${rows.length} questions importées !`)
+    } catch(err) { alert('Erreur Excel : ' + err.message) }
+    e.target.value = ''
+  }
+
   async function handleGenerate() {
     if (generating) return
     setGenerating(true)
@@ -146,14 +218,7 @@ export default function BullsRaceAdmin() {
     const nextQ = questions.find(q => !q.used)
     if (!nextQ) return alert('Plus de questions disponibles ! Générez-en d\'autres.')
     setLoading(true)
-    // Régénération automatique si moins de 5 questions restantes
-    if (questions.filter(q => !q.used).length <= 5) {
-      try {
-        const res = await fetch('https://blindtest-live.vercel.app/api/race-generate', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-        const data = await res.json()
-        if (data.success) loadQuestions()
-      } catch(e) { console.error('auto-generate error', e) }
-    }
+    // Auto-génération désactivée — utiliser l'import CSV/Excel ou IA manuellement
     const timerEnd = new Date(Date.now() + 30 * 1000).toISOString()
     const newRound = (state.round_number || 0) + 1
     const newState = {
@@ -586,10 +651,28 @@ export default function BullsRaceAdmin() {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button className="btn btn-ghost" style={{ width: 'auto', padding: '8px 14px', fontSize: 10 }} onClick={handleResetAllQuestions}>↺ Reset toutes</button>
-                  <button className="btn btn-red" style={{ width: 'auto', padding: '10px 20px' }} onClick={handleGenerate} disabled={generating}>
-                    {generating ? '⏳ GÉNÉRATION...' : '🤖 GÉNÉRER 40 QUESTIONS'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <label style={{ padding: '9px 14px', background: 'rgba(0,245,255,.1)', border: '1px solid rgba(0,245,255,.4)', borderRadius: 8, cursor: 'pointer', fontFamily: 'Share Tech Mono', fontSize: 11, color: '#00f5ff', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
+                      📥 CSV
+                      <input type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={handleCSVImport} />
+                    </label>
+                    <label style={{ padding: '9px 14px', background: 'rgba(0,255,136,.08)', border: '1px solid rgba(0,255,136,.4)', borderRadius: 8, cursor: 'pointer', fontFamily: 'Share Tech Mono', fontSize: 11, color: '#00ff88', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>
+                      📊 EXCEL
+                      <input type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleExcelImport} />
+                    </label>
+                    <button className="btn btn-red" style={{ width: 'auto', padding: '9px 16px' }} onClick={handleGenerate} disabled={generating}>
+                      {generating ? '⏳' : '🤖 IA'}
+                    </button>
+                  </div>
                 </div>
+              </div>
+
+              {/* Ajout manuel */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 110px auto', gap: 8, marginBottom: 14, paddingBottom: 14, borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+                <input className="inp" placeholder="Question..." value={newQuestion} onChange={e => setNewQuestion(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()} />
+                <input className="inp" placeholder="Réponse..." value={newAnswer} onChange={e => setNewAnswer(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualAdd()} />
+                <input className="inp" placeholder="Catégorie" value={newCategory} onChange={e => setNewCategory(e.target.value)} />
+                <button className="btn btn-pink" style={{ width: 'auto', padding: '10px 14px' }} onClick={handleManualAdd} disabled={!newQuestion.trim() || !newAnswer.trim()}>+ ADD</button>
               </div>
 
               {questions.length === 0 ? (
