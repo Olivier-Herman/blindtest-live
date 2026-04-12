@@ -13,21 +13,32 @@ const COLORS = [
 ]
 
 const BOARD = [
-  { id: 0,  type: 'start'  },
-  { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
-  { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
-  { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
-  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
-  { id: 10, type: 'bonus',  value: 2  }, { id: 11, type: 'normal' },
-  { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'wheel'  },
-  { id: 14, type: 'joker'  }, { id: 15, type: 'normal' },
-  { id: 16, type: 'bonus',  value: 3  }, { id: 17, type: 'normal' }, { id: 18, type: 'normal' },
-  { id: 19, type: 'trap',   value: -2 }, { id: 20, type: 'normal' },
-  { id: 21, type: 'wheel'  }, { id: 22, type: 'normal' },
-  { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
-  { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
-  { id: 27, type: 'normal' }, { id: 28, type: 'wheel'  },
-  { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
+  { id:  0, type: 'start'  },
+  { id:  1, type: 'normal' },
+  { id:  2, type: 'bonus',  value: 2  },
+  { id:  3, type: 'normal' },
+  { id:  4, type: 'wheel'  },
+  { id:  5, type: 'normal' },
+  { id:  6, type: 'trap',   value: -2 },
+  { id:  7, type: 'normal' },
+  { id:  8, type: 'joker'  },
+  { id:  9, type: 'normal' },
+  { id: 10, type: 'wheel'  },
+  { id: 11, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 },
+  { id: 13, type: 'wheel'  },
+  { id: 14, type: 'bonus',  value: 2  },
+  { id: 15, type: 'normal' },
+  { id: 16, type: 'wheel'  },
+  { id: 17, type: 'trap',   value: -2 },
+  { id: 18, type: 'normal' },
+  { id: 19, type: 'wheel'  },
+  { id: 20, type: 'bonus',  value: 2  },
+  { id: 21, type: 'normal' },
+  { id: 22, type: 'wheel'  },
+  { id: 23, type: 'trap',   value: -2 },
+  { id: 24, type: 'normal' },
+  { id: 25, type: 'finish' },
 ]
 
 const WHEEL_SEGMENTS = [
@@ -53,14 +64,14 @@ async function applyWheelResult(player, result, allPlayers) {
     return player.position
   }
   if (result === 'advance1') {
-    newPos = Math.min(player.position + 1, 30)
+    newPos = Math.min(player.position + 1, 25)
   }
   if (result === 'back1') {
     newPos = Math.max(player.position - 1, 0)
   }
   if (result === 'first') {
     const maxPos = Math.max(...allPlayers.map(p => p.position))
-    newPos = Math.min(maxPos + 1, 30)
+    newPos = Math.min(maxPos + 1, 25)
   }
   if (result === 'last') {
     const minPos = Math.min(...allPlayers.map(p => p.position))
@@ -133,7 +144,7 @@ export default async function handler(req, res) {
       .from('race_players').select('*')
       .eq('session_id', SESSION_ID).eq('username', loserUsername).single()
 
-    const winnerNewPos = Math.min((player.position || 0) + 3, 30)
+    const winnerNewPos = Math.min((player.position || 0) + 3, 25)
     const loserNewPos  = Math.max((loser?.position || 0) - 3, 0)
 
     await supabase.from('race_players').update({
@@ -150,7 +161,7 @@ export default async function handler(req, res) {
       status: 'duel_result', case_effect: duelResult, first_answerer: username, updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
 
-    if (winnerNewPos >= 30) {
+    if (winnerNewPos >= 25) {
       await supabase.from('race_state').update({ status: 'finished', winner: username, updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
     }
 
@@ -179,14 +190,14 @@ export default async function handler(req, res) {
 
   const isFirst = !state.first_answerer
   const advance = isFirst ? 3 : 1
-  let newPos = Math.min(player.position + advance, 30)
+  let newPos = Math.min(player.position + advance, 25)
 
   const landedCase = BOARD[newPos] || { type: 'normal' }
   let caseEffect = null
   let nextStatus = null
 
   if (landedCase.type === 'bonus') {
-    newPos = Math.min(newPos + landedCase.value, 30)
+    newPos = Math.min(newPos + landedCase.value, 25)
     caseEffect = { type: 'bonus', value: landedCase.value, player: username }
   } else if (landedCase.type === 'trap') {
     newPos = Math.max(newPos + landedCase.value, 0)
@@ -200,17 +211,6 @@ export default async function handler(req, res) {
       await supabase.from('race_players').update({ is_blocked: true }).eq('id', allPlayers[0].id)
       caseEffect = { type: 'joker', player: username, blocked: allPlayers[0].username }
     }
-  } else if (landedCase.type === 'duel') {
-    const { data: allPlayers } = await supabase
-      .from('race_players').select('*')
-      .eq('session_id', SESSION_ID).neq('username', username)
-      .order('position', { ascending: false }).limit(1)
-    const opponent = allPlayers?.[0]?.username || null
-    caseEffect = { type: 'duel', challenger: username, opponent }
-    nextStatus = 'duel'
-    await supabase.from('race_state').update({
-      duel_challenger: username, duel_opponent: opponent
-    }).eq('session_id', SESSION_ID)
   } else if (landedCase.type === 'wheel') {
     // Tirage au sort du résultat
     const result = WHEEL_SEGMENTS[Math.floor(Math.random() * WHEEL_SEGMENTS.length)]
@@ -242,7 +242,7 @@ export default async function handler(req, res) {
   if (isFirst) stateUpdate.first_answerer = username
   await supabase.from('race_state').update(stateUpdate).eq('session_id', SESSION_ID)
 
-  if (newPos >= 30 && landedCase.type !== 'wheel') {
+  if (newPos >= 25 && landedCase.type !== 'wheel') {
     await supabase.from('race_state').update({
       status: 'finished', winner: username, updated_at: new Date().toISOString()
     }).eq('session_id', SESSION_ID)
