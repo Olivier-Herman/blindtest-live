@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 
 const SESSION_ID = 'bulls-race'
@@ -33,6 +33,32 @@ const BOARD = [
 ]
 
 const CASE_ICONS = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', wheel: '🎡', start: '🚀', finish: '🏁' }
+const CIRCUIT_PTS = [
+  { x: 9,    y: 22 }, { x: 19,   y: 22 }, { x: 29,   y: 22 },
+  { x: 39,   y: 22 }, { x: 49,   y: 22 }, { x: 59,   y: 22 },
+  { x: 69,   y: 22 }, { x: 79,   y: 22 }, { x: 87,   y: 22 },
+  { x: 94,   y: 36 }, { x: 94,   y: 52 },
+  { x: 87,   y: 64 }, { x: 76,   y: 64 }, { x: 65,   y: 64 },
+  { x: 54,   y: 64 }, { x: 43,   y: 64 }, { x: 32,   y: 64 },
+  { x: 21,   y: 64 }, { x: 10,   y: 64 },
+  { x: 3.5,  y: 76 },
+  { x: 14,   y: 86 }, { x: 28,   y: 86 }, { x: 43,   y: 86 },
+  { x: 58,   y: 86 }, { x: 73,   y: 86 }, { x: 87,   y: 86 },
+]
+
+const BORDERS_CANVAS = {
+  start: '#ff2d78', normal: 'rgba(255,255,255,0.5)',
+  bonus: '#ffd700', trap: '#ff3860',
+  duel: '#7b2fff', joker: '#00f5ff',
+  wheel: '#a855f7', finish: '#c8a96e',
+}
+const FILLS_CANVAS = {
+  start: 'rgba(255,45,120,0.3)', normal: 'rgba(255,255,255,0.06)',
+  bonus: 'rgba(255,215,0,0.2)', trap: 'rgba(255,60,60,0.2)',
+  duel: 'rgba(123,47,255,0.25)', joker: 'rgba(0,245,255,0.2)',
+  wheel: 'rgba(168,85,247,0.25)', finish: 'rgba(200,169,110,0.35)',
+}
+
 const CASE_COLORS = { normal: 'rgba(255,255,255,.08)', bonus: 'rgba(255,215,0,.2)', trap: 'rgba(255,60,60,.2)', duel: 'rgba(123,47,255,.25)', joker: 'rgba(0,245,255,.2)', wheel: 'rgba(168,85,247,.25)', start: 'rgba(255,255,255,.05)', finish: 'rgba(200,169,110,.3)' }
 
 export default function BullsRaceAdmin() {
@@ -133,6 +159,92 @@ export default function BullsRaceAdmin() {
     } catch (e) { alert('Erreur réseau') }
     setGenerating(false)
   }
+
+  useEffect(() => {
+    const canvas = adminCanvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const W = canvas.width, H = canvas.height
+    ctx.clearRect(0, 0, W, H)
+    ctx.fillStyle = '#07070f'
+    ctx.fillRect(0, 0, W, H)
+
+    const px = x => x / 100 * W
+    const py = y => y / 100 * H
+    const Y1 = 22, Y2 = 64, Y3 = 86
+    const XL = 9, XR = 87
+
+    // Piste
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)'
+    ctx.lineWidth = H * 0.1
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(px(XL), py(Y1)); ctx.lineTo(px(XR), py(Y1))
+    ctx.bezierCurveTo(px(XR+12), py(Y1), px(XR+12), py(Y2), px(XR), py(Y2))
+    ctx.lineTo(px(XL), py(Y2))
+    ctx.bezierCurveTo(px(XL-10), py(Y2), px(XL-10), py(Y3), px(XL+5), py(Y3))
+    ctx.lineTo(px(XR), py(Y3))
+    ctx.stroke()
+
+    // Cases
+    BOARD.forEach((c, i) => {
+      if (i >= CIRCUIT_PTS.length) return
+      const pt = CIRCUIT_PTS[i]
+      const cx = px(pt.x), cy = py(pt.y)
+      const isSpecial = c.type !== 'normal'
+      const r = (c.type==='start'||c.type==='finish') ? H*0.085 : isSpecial ? H*0.08 : H*0.065
+
+      if (isSpecial) {
+        ctx.beginPath(); ctx.arc(cx, cy, r+H*0.015, 0, Math.PI*2)
+        ctx.fillStyle = FILLS_CANVAS[c.type]; ctx.fill()
+      }
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2)
+      ctx.fillStyle = '#0f0f1e'; ctx.fill()
+      ctx.strokeStyle = BORDERS_CANVAS[c.type]
+      ctx.lineWidth = isSpecial ? 3 : 1.5; ctx.stroke()
+
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+      const fs = H * 0.045
+      if (c.type === 'start') {
+        ctx.fillStyle = '#ff2d78'; ctx.font = `900 ${fs*0.75}px Arial Black,Arial`
+        ctx.fillText('GO', cx, cy)
+      } else if (c.type === 'finish') {
+        ctx.fillStyle = '#ffd700'; ctx.font = `900 ${fs*0.7}px Arial Black,Arial`
+        ctx.fillText('FIN', cx, cy)
+      } else if (c.type === 'normal') {
+        ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = `700 ${fs*0.6}px Arial`
+        ctx.fillText(i, cx, cy)
+      } else if (c.type === 'bonus') {
+        ctx.fillStyle = '#ffd700'
+        ctx.font = `900 ${fs*0.75}px Arial Black,Arial`; ctx.fillText('+'+c.value, cx, cy-r*0.22)
+        ctx.font = `${fs*0.55}px Arial`; ctx.fillText('★', cx, cy+r*0.4)
+      } else if (c.type === 'trap') {
+        ctx.fillStyle = '#ff3860'
+        ctx.font = `900 ${fs*0.75}px Arial Black,Arial`; ctx.fillText(c.value, cx, cy-r*0.22)
+        ctx.font = `${fs*0.55}px Arial`; ctx.fillText('☠', cx, cy+r*0.4)
+      } else if (c.type === 'joker') {
+        ctx.fillStyle = '#00f5ff'
+        ctx.font = `900 ${fs*0.5}px Arial Black,Arial`; ctx.fillText('JOKER', cx, cy-r*0.25)
+        ctx.font = `${fs*0.6}px Arial`; ctx.fillText('J', cx, cy+r*0.38)
+      } else if (c.type === 'wheel') {
+        ctx.fillStyle = '#a855f7'
+        ctx.font = `900 ${fs*0.45}px Arial Black,Arial`; ctx.fillText('MYST.', cx, cy-r*0.25)
+        ctx.font = `${fs*0.65}px Arial`; ctx.fillText('🎡', cx, cy+r*0.38)
+      }
+
+      // Pions sur cette case
+      const here = players.filter(p => p.position === c.id)
+      here.forEach((p, pi) => {
+        const offsetX = (pi - (here.length-1)/2) * r * 0.6
+        const pr = r * 0.38
+        ctx.beginPath(); ctx.arc(cx+offsetX, cy, pr, 0, Math.PI*2)
+        ctx.fillStyle = p.color; ctx.fill()
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke()
+        ctx.fillStyle = '#000'; ctx.font = `900 ${pr*0.9}px Arial`
+        ctx.fillText(p.username.charAt(0).toUpperCase(), cx+offsetX, cy)
+      })
+    })
+  }, [players, state])
 
   async function handleOpenRegistration() {
     await supabase.from('race_state').update({ status: 'waiting', updated_at: new Date().toISOString() }).eq('session_id', SESSION_ID)
@@ -544,20 +656,15 @@ export default function BullsRaceAdmin() {
               </div>
             </div>
 
-            {/* ── Colonne centrale : Plateau ── */}
-            <div className="card">
-              <span className="label">🗺 plateau — 30 cases</span>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 4, marginBottom: 10 }}>
-                {[20,21,22,23,24,25].map(id => renderBoardCell(id, players))}
-                {[19,18,17,16,15,14].map(id => renderBoardCell(id, players))}
-                {[8,9,10,11,12,13].map(id => renderBoardCell(id, players))}
-                {[7,6,5,4,3,2].map(id => renderBoardCell(id, players))}
-                {[0,1].map(id => renderBoardCell(id, players))}
-              </div>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 8 }}>
-                {[['bonus','⭐ Bonus'],['trap','💀 Piège'],['duel','⚔️ Duel'],['joker','🃏 Joker'],['wheel','🎡 Mystère']].map(([type, label]) => (
+            {/* ── Colonne centrale : Circuit ── */}
+            <div className="card" style={{ padding: 8 }}>
+              <span className="label" style={{ marginBottom: 6 }}>🗺 plateau — 25 cases</span>
+              <canvas ref={adminCanvasRef} width={900} height={400}
+                style={{ width: '100%', borderRadius: 8, display: 'block' }} />
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                {[['bonus','⭐ Bonus'],['trap','💀 Piège'],['joker','🃏 Joker'],['wheel','🎡 Mystère'],['finish','🏁 Arrivée']].map(([type, label]) => (
                   <div key={type} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, color: 'rgba(255,255,255,.5)', fontFamily: 'Share Tech Mono' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: 3, background: CASE_COLORS[type] }} />
+                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: CASE_COLORS[type] }} />
                     {label}
                   </div>
                 ))}
@@ -694,7 +801,33 @@ function renderBoardCell(id, players) {
   { id: 25, type: 'finish' },
 ]
   const CASE_ICONS  = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }
-  const CASE_COLORS = { normal: 'rgba(255,255,255,.05)', bonus: 'rgba(255,215,0,.15)', trap: 'rgba(255,60,60,.15)', duel: 'rgba(123,47,255,.2)', joker: 'rgba(0,245,255,.15)', finish: 'rgba(200,169,110,.25)' }
+  const CIRCUIT_PTS = [
+  { x: 9,    y: 22 }, { x: 19,   y: 22 }, { x: 29,   y: 22 },
+  { x: 39,   y: 22 }, { x: 49,   y: 22 }, { x: 59,   y: 22 },
+  { x: 69,   y: 22 }, { x: 79,   y: 22 }, { x: 87,   y: 22 },
+  { x: 94,   y: 36 }, { x: 94,   y: 52 },
+  { x: 87,   y: 64 }, { x: 76,   y: 64 }, { x: 65,   y: 64 },
+  { x: 54,   y: 64 }, { x: 43,   y: 64 }, { x: 32,   y: 64 },
+  { x: 21,   y: 64 }, { x: 10,   y: 64 },
+  { x: 3.5,  y: 76 },
+  { x: 14,   y: 86 }, { x: 28,   y: 86 }, { x: 43,   y: 86 },
+  { x: 58,   y: 86 }, { x: 73,   y: 86 }, { x: 87,   y: 86 },
+]
+
+const BORDERS_CANVAS = {
+  start: '#ff2d78', normal: 'rgba(255,255,255,0.5)',
+  bonus: '#ffd700', trap: '#ff3860',
+  duel: '#7b2fff', joker: '#00f5ff',
+  wheel: '#a855f7', finish: '#c8a96e',
+}
+const FILLS_CANVAS = {
+  start: 'rgba(255,45,120,0.3)', normal: 'rgba(255,255,255,0.06)',
+  bonus: 'rgba(255,215,0,0.2)', trap: 'rgba(255,60,60,0.2)',
+  duel: 'rgba(123,47,255,0.25)', joker: 'rgba(0,245,255,0.2)',
+  wheel: 'rgba(168,85,247,0.25)', finish: 'rgba(200,169,110,0.35)',
+}
+
+const CASE_COLORS = { normal: 'rgba(255,255,255,.05)', bonus: 'rgba(255,215,0,.15)', trap: 'rgba(255,60,60,.15)', duel: 'rgba(123,47,255,.2)', joker: 'rgba(0,245,255,.15)', finish: 'rgba(200,169,110,.25)' }
   const c = BOARD[id]
   const playersHere = players.filter(p => p.position === id)
   return (
