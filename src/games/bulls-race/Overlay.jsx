@@ -136,7 +136,7 @@ export default function BullsRaceOverlay() {
     const XL = 9, XR = 87
 
     // Piste
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)'
+    ctx.strokeStyle = 'rgba(255,255,255,0.88)'
     ctx.lineWidth = H * 0.08
     ctx.lineJoin = 'round'; ctx.lineCap = 'round'
     ctx.beginPath()
