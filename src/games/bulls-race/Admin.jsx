@@ -566,7 +566,7 @@ export default function BullsRaceAdmin() {
                 </div>
               </div>
 
-              {/* Question + réponse */}
+              {/* Question en cours + suivante */}
               <div className="card">
                 <span className="label">❓ question en cours</span>
                 {state.current_question ? (
@@ -591,6 +591,23 @@ export default function BullsRaceAdmin() {
                   </div>
                 )}
               </div>
+
+              {/* Question suivante */}
+              {(() => {
+                const nextQ = questions.filter(q => !q.used && q.question !== state.current_question)[0]
+                if (!nextQ) return null
+                return (
+                  <div className="card" style={{ border: '1px solid rgba(255,255,255,.06)', background: 'rgba(255,255,255,.02)' }}>
+                    <span className="label" style={{ color: 'rgba(255,255,255,.25)' }}>👁 question suivante</span>
+                    <div style={{ fontSize: 9, color: 'rgba(255,45,120,.5)', fontFamily: 'Share Tech Mono', letterSpacing: 2, marginBottom: 6 }}>{nextQ.category?.toUpperCase()}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.5, marginBottom: 8, color: 'rgba(255,255,255,.7)' }}>{nextQ.question}</div>
+                    <div style={{ padding: '6px 10px', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 8 }}>
+                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.25)', fontFamily: 'Share Tech Mono', marginBottom: 3 }}>RÉPONSE</div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: 'rgba(255,215,0,.6)' }}>{nextQ.answer}</div>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Événements */}
               <div className="card">
