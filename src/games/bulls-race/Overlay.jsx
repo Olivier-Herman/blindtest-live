@@ -4,25 +4,32 @@ import { supabase } from '../../lib/supabase'
 const SESSION_ID = 'bulls-race'
 
 const BOARD = [
-  { id: 0,  type: 'start'  },
-  { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
-  { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
-  { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
-  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' },
-  { id: 9,  type: 'normal' }, { id: 10, type: 'joker'  },
+  { id:  0, type: 'start'  },
+  { id:  1, type: 'normal' },
+  { id:  2, type: 'bonus',  value: 2  },
+  { id:  3, type: 'normal' },
+  { id:  4, type: 'wheel'  },
+  { id:  5, type: 'normal' },
+  { id:  6, type: 'trap',   value: -2 },
+  { id:  7, type: 'normal' },
+  { id:  8, type: 'joker'  },
+  { id:  9, type: 'normal' },
+  { id: 10, type: 'wheel'  },
   { id: 11, type: 'normal' },
   { id: 12, type: 'trap',   value: -3 },
   { id: 13, type: 'wheel'  },
   { id: 14, type: 'bonus',  value: 2  },
-  { id: 15, type: 'normal' }, { id: 16, type: 'wheel'  },
-  { id: 17, type: 'normal' }, { id: 18, type: 'trap',   value: -2 },
-  { id: 19, type: 'normal' },
-  { id: 20, type: 'normal' }, { id: 21, type: 'joker'  },
+  { id: 15, type: 'normal' },
+  { id: 16, type: 'wheel'  },
+  { id: 17, type: 'trap',   value: -2 },
+  { id: 18, type: 'normal' },
+  { id: 19, type: 'wheel'  },
+  { id: 20, type: 'bonus',  value: 2  },
+  { id: 21, type: 'joker'  },
   { id: 22, type: 'normal' },
-  { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
-  { id: 25, type: 'trap',   value: -2 }, { id: 26, type: 'normal' },
-  { id: 27, type: 'wheel'  }, { id: 28, type: 'normal' },
-  { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
+  { id: 23, type: 'wheel'  },
+  { id: 24, type: 'normal' },
+  { id: 25, type: 'finish' },
 ]
 
 // Positions % sur le canvas (width=1920, height=900)
@@ -218,7 +225,7 @@ export default function BullsRaceOverlay() {
 
     // Pions
     playersRef.current.forEach((p, idx) => {
-      const pos = Math.min(p.position, CIRCUIT_PTS.length - 1)
+      const pos = Math.min(p.position, 25)
       const pt = CIRCUIT_PTS[pos]
       if (!pt) return
       const playersHere = playersRef.current.filter(pp => pp.position === p.position)

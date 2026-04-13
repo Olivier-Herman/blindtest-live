@@ -4,21 +4,32 @@ import { supabase } from '../../lib/supabase'
 const SESSION_ID = 'bulls-race'
 
 const BOARD = [
-  { id: 0,  type: 'start'  },
-  { id: 1,  type: 'normal' }, { id: 2,  type: 'bonus',  value: 2  },
-  { id: 3,  type: 'normal' }, { id: 4,  type: 'normal' },
-  { id: 5,  type: 'trap',   value: -2 }, { id: 6,  type: 'normal' },
-  { id: 7,  type: 'wheel'  }, { id: 8,  type: 'normal' }, { id: 9,  type: 'normal' },
-  { id: 10, type: 'bonus',  value: 2  }, { id: 11, type: 'normal' },
-  { id: 12, type: 'trap',   value: -3 }, { id: 13, type: 'wheel'  },
-  { id: 14, type: 'joker'  }, { id: 15, type: 'normal' },
-  { id: 16, type: 'bonus',  value: 3  }, { id: 17, type: 'normal' }, { id: 18, type: 'normal' },
-  { id: 19, type: 'trap',   value: -2 }, { id: 20, type: 'normal' },
-  { id: 21, type: 'wheel'  }, { id: 22, type: 'normal' },
-  { id: 23, type: 'bonus',  value: 2  }, { id: 24, type: 'normal' },
-  { id: 25, type: 'trap',   value: -3 }, { id: 26, type: 'joker'  },
-  { id: 27, type: 'normal' }, { id: 28, type: 'wheel'  },
-  { id: 29, type: 'trap',   value: -2 }, { id: 30, type: 'finish' },
+  { id:  0, type: 'start'  },
+  { id:  1, type: 'normal' },
+  { id:  2, type: 'bonus',  value: 2  },
+  { id:  3, type: 'normal' },
+  { id:  4, type: 'wheel'  },
+  { id:  5, type: 'normal' },
+  { id:  6, type: 'trap',   value: -2 },
+  { id:  7, type: 'normal' },
+  { id:  8, type: 'joker'  },
+  { id:  9, type: 'normal' },
+  { id: 10, type: 'wheel'  },
+  { id: 11, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 },
+  { id: 13, type: 'wheel'  },
+  { id: 14, type: 'bonus',  value: 2  },
+  { id: 15, type: 'normal' },
+  { id: 16, type: 'wheel'  },
+  { id: 17, type: 'trap',   value: -2 },
+  { id: 18, type: 'normal' },
+  { id: 19, type: 'wheel'  },
+  { id: 20, type: 'bonus',  value: 2  },
+  { id: 21, type: 'joker'  },
+  { id: 22, type: 'normal' },
+  { id: 23, type: 'wheel'  },
+  { id: 24, type: 'normal' },
+  { id: 25, type: 'finish' },
 ]
 
 const CIRCUIT_PTS = [
@@ -96,7 +107,7 @@ export default function BullsRaceAdmin() {
     if (!e) return ''
     if (e.type === 'bonus')  return `⭐ ${e.player} tombe sur BONUS +${e.value} cases !`
     if (e.type === 'trap')   return `💀 ${e.player} tombe sur PIÈGE ${e.value} cases !`
-    if (e.type === 'joker')  return `🃏 ${e.player} bloque ${e.blocked} !`
+    if (e.type === 'joker')  return `🃏 ${e.player} lance le dé : +${e.dice} cases !`
     if (e.type === 'duel')   return `⚔️ DUEL : ${e.challenger} vs ${e.opponent} !`
     return ''
   }
@@ -327,7 +338,7 @@ export default function BullsRaceAdmin() {
   async function handleAdjustPosition(playerId, delta) {
     const p = players.find(x => x.id === playerId)
     if (!p) return
-    const newPos = Math.max(0, Math.min(30, p.position + delta))
+    const newPos = Math.max(0, Math.min(25, p.position + delta))
     await supabase.from('race_players').update({ position: newPos }).eq('id', playerId)
   }
 
@@ -715,25 +726,40 @@ function formatEffect(e) {
   if (!e) return ''
   if (e.type === 'bonus')  return `⭐ ${e.player} — BONUS +${e.value} cases !`
   if (e.type === 'trap')   return `💀 ${e.player} — PIÈGE ${e.value} cases !`
-  if (e.type === 'joker')  return `🃏 ${e.player} bloque ${e.blocked} !`
+  if (e.type === 'joker')  return `🃏 ${e.player} lance le dé : +${e.dice} cases !`
   if (e.type === 'duel')   return `⚔️ DUEL — ${e.challenger} vs ${e.opponent} !`
   return ''
 }
 
 function renderBoardCell(id, players) {
   const BOARD = [
-    { id: 0, type: 'start' }, { id: 1, type: 'normal' }, { id: 2, type: 'bonus', value: 2 },
-    { id: 3, type: 'normal' }, { id: 4, type: 'normal' }, { id: 5, type: 'trap', value: -2 },
-    { id: 6, type: 'normal' }, { id: 7, type: 'wheel' }, { id: 8, type: 'normal' },
-    { id: 9, type: 'normal' }, { id: 10, type: 'bonus', value: 2 }, { id: 11, type: 'normal' },
-    { id: 12, type: 'trap', value: -3 }, { id: 13, type: 'wheel' }, { id: 14, type: 'joker' },
-    { id: 15, type: 'normal' }, { id: 16, type: 'bonus', value: 3 }, { id: 17, type: 'normal' },
-    { id: 18, type: 'normal' }, { id: 19, type: 'trap', value: -2 }, { id: 20, type: 'normal' },
-    { id: 21, type: 'wheel' }, { id: 22, type: 'normal' }, { id: 23, type: 'bonus', value: 2 },
-    { id: 24, type: 'normal' }, { id: 25, type: 'trap', value: -3 }, { id: 26, type: 'joker' },
-    { id: 27, type: 'normal' }, { id: 28, type: 'wheel' }, { id: 29, type: 'trap', value: -2 },
-    { id: 30, type: 'finish' },
-  ]
+  { id:  0, type: 'start'  },
+  { id:  1, type: 'normal' },
+  { id:  2, type: 'bonus',  value: 2  },
+  { id:  3, type: 'normal' },
+  { id:  4, type: 'wheel'  },
+  { id:  5, type: 'normal' },
+  { id:  6, type: 'trap',   value: -2 },
+  { id:  7, type: 'normal' },
+  { id:  8, type: 'joker'  },
+  { id:  9, type: 'normal' },
+  { id: 10, type: 'wheel'  },
+  { id: 11, type: 'normal' },
+  { id: 12, type: 'trap',   value: -3 },
+  { id: 13, type: 'wheel'  },
+  { id: 14, type: 'bonus',  value: 2  },
+  { id: 15, type: 'normal' },
+  { id: 16, type: 'wheel'  },
+  { id: 17, type: 'trap',   value: -2 },
+  { id: 18, type: 'normal' },
+  { id: 19, type: 'wheel'  },
+  { id: 20, type: 'bonus',  value: 2  },
+  { id: 21, type: 'joker'  },
+  { id: 22, type: 'normal' },
+  { id: 23, type: 'wheel'  },
+  { id: 24, type: 'normal' },
+  { id: 25, type: 'finish' },
+]
   const CASE_ICONS  = { normal: '⬜', bonus: '⭐', trap: '💀', duel: '⚔️', joker: '🃏', start: '🚀', finish: '🏁' }
   const CASE_COLORS = { normal: 'rgba(255,255,255,.05)', bonus: 'rgba(255,215,0,.15)', trap: 'rgba(255,60,60,.15)', duel: 'rgba(123,47,255,.2)', joker: 'rgba(0,245,255,.15)', finish: 'rgba(200,169,110,.25)' }
   const c = BOARD[id]

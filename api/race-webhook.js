@@ -34,8 +34,8 @@ const BOARD = [
   { id: 18, type: 'normal' },
   { id: 19, type: 'wheel'  },
   { id: 20, type: 'bonus',  value: 2  },
-  { id: 21, type: 'normal' },
-  { id: 22, type: 'wheel'  },
+  { id: 21, type: 'joker'  },
+  { id: 22, type: 'normal' },
   { id: 23, type: 'wheel'  },
   { id: 24, type: 'normal' },
   { id: 25, type: 'finish' },
@@ -203,14 +203,9 @@ export default async function handler(req, res) {
     newPos = Math.max(newPos + landedCase.value, 0)
     caseEffect = { type: 'trap', value: landedCase.value, player: username }
   } else if (landedCase.type === 'joker') {
-    const { data: allPlayers } = await supabase
-      .from('race_players').select('*')
-      .eq('session_id', SESSION_ID).neq('username', username)
-      .order('position', { ascending: false }).limit(1)
-    if (allPlayers?.[0]) {
-      await supabase.from('race_players').update({ is_blocked: true }).eq('id', allPlayers[0].id)
-      caseEffect = { type: 'joker', player: username, blocked: allPlayers[0].username }
-    }
+    const dice = Math.floor(Math.random() * 6) + 1
+    newPos = Math.min(newPos + dice, 25)
+    caseEffect = { type: 'joker', player: username, dice, value: dice }
   } else if (landedCase.type === 'wheel') {
     // Tirage au sort du résultat
     const result = WHEEL_SEGMENTS[Math.floor(Math.random() * WHEEL_SEGMENTS.length)]
