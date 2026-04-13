@@ -343,7 +343,11 @@ export default function BullsRaceAdmin() {
   }
 
   async function handleRemovePlayer(playerId) {
+    const p = players.find(x => x.id === playerId)
+    if (!p) return
+    if (!confirm(`Retirer @${p.username} de la partie ?`)) return
     await supabase.from('race_players').delete().eq('id', playerId)
+    loadPlayers()
   }
 
   const statusColor = { idle: '#888', waiting: '#ffd700', playing: '#00f5ff', revealed: '#00ff88', duel: '#ff2d78', duel_result: '#ff8c00', wheel: '#a855f7', wheel_result: '#a855f7', finished: '#c8a96e', rules: '#b388ff' }
@@ -645,7 +649,7 @@ export default function BullsRaceAdmin() {
                         <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, -1)}>−</button>
                         <span style={{ fontSize: 12, fontWeight: 900, color: p.color, minWidth: 20, textAlign: 'center' }}>{p.position}</span>
                         <button className="mini-btn" onClick={() => handleAdjustPosition(p.id, 1)}>+</button>
-                        <button className="mini-btn" style={{ borderColor: 'rgba(255,60,60,.3)', color: 'rgba(255,60,60,.5)' }} onClick={() => handleRemovePlayer(p.id)}>✕</button>
+                        <button className="mini-btn" style={{ borderColor: 'rgba(255,60,60,.6)', color: '#ff3860', background: 'rgba(255,60,60,.1)' }} onClick={() => handleRemovePlayer(p.id)} title="Retirer ce joueur">✕</button>
                       </div>
                     </div>
                   ))}

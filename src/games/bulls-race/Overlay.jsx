@@ -82,7 +82,7 @@ export default function BullsRaceOverlay() {
     loadAll()
     const ch1 = supabase.channel('overlay_race_state')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'race_state', filter: `session_id=eq.${SESSION_ID}` },
-        p => { setState(p.new); triggerEffect(p.new.case_effect) })
+        p => { setState(p.new); triggerEffect(p.new.case_effect); loadPlayers() })
       .subscribe()
     const ch2 = supabase.channel('overlay_race_players')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'race_players', filter: `session_id=eq.${SESSION_ID}` },
